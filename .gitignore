@@ -1,0 +1,9 @@
+/.idea
+/out
+/cplusplus/build/
+**.txt
+**.iml
+**.json
+**/.txt
+/logs/**.pdf
+/logs/**.pklog
