@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class PokemonBuilder {
     private String nome;
-    private final int NIVEL = 50;
+    private final int NIVEL = 100;
     private Natureza natureza;
     private Tipo tipo1;
     private Tipo tipo2;
@@ -86,12 +86,12 @@ public class PokemonBuilder {
     }
 
     public String getNome() { return nome; }
-    int getNivel() { return NIVEL; }
-    Natureza getNatureza() { return natureza; }
-    Tipo getTipo1() { return tipo1; }
-    Tipo getTipo2() { return tipo2; }
-    Estatisticas getBaseStats() { return baseStats; }
-    Estatisticas getIvs() { return ivs; }
-    Estatisticas getEvs() { return evs; }
-    List<Movimento> getMovimentos() { return movimentos; }
+    public int getNivel() { return NIVEL; }
+    public Natureza getNatureza() { return natureza; }
+    public Tipo getTipo1() { return tipo1; }
+    public Tipo getTipo2() { return tipo2; }
+    public Estatisticas getBaseStats() { return baseStats; }
+    public Estatisticas getIvs() { return ivs; }
+    public Estatisticas getEvs() { return evs; }
+    public List<Movimento> getMovimentos() { return movimentos; }
 }

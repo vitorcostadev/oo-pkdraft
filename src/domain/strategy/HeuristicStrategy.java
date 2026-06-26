@@ -9,9 +9,9 @@ import domain.models.Treinador;
 import services.CalculadoraDeDano;
 
 /**
- * Implementa a logica de decisao autonoma baseada em heuristica de risco e efetividade elementar.
+ * Implementa a lógica de decisao autonoma baseada em heuristica de risco e efetividade elementar.
  */
-public class IAHeuristicaStrategy implements EstrategiaDecisao {
+public class HeuristicStrategy implements EstrategiaDecisao {
     private boolean ultimoTurnoFoiTroca = false;
 
     @Override

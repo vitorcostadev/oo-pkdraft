@@ -1,12 +1,8 @@
 package domain.commands;
 
 import controller.LogService;
-import domain.models.CategoriaMovimento;
+import domain.models.*;
 import domain.Pokemon;
-import domain.models.Atributo;
-import domain.models.Batalha;
-import domain.models.Movimento;
-import domain.models.Treinador;
 import services.CalculadoraDeDano;
 
 /**
@@ -44,19 +40,30 @@ public class ComandoAtacar implements ComandoTurno {
             return;
         }
 
-        log.registrarEvento(atacante.getNome() + " ordenou que " + pAtacante.getNome() + " usasse " + movimento.getNome() + "!");
+        log.registrarEvento("[" +
+                atacante.getNome() + "]: "
+                + pAtacante.getNome() + " usou  " + movimento.nome() + "!");
 
         int dano = calculadora.calcular(pAtacante, pDefensor, movimento);
 
-        if (dano == 0 && movimento.getCategoria() != CategoriaMovimento.STATUS) {
+        if (dano == 0 && movimento.categoria() != CategoriaMovimento.STATUS) {
             log.registrarEvento("O ataque nao afetou " + pDefensor.getNome() + "!");
         } else {
             pDefensor.receberDano(dano);
-            log.registrarEvento(pDefensor.getNome() + " recebeu " + dano + " pontos de dano.");
+            log.registrarEvento(pDefensor.getNome() + " recebeu " + dano + " pontos de dano." + getEffectiveMsg(movimento, pDefensor));
 
             if (pDefensor.isDesmaiado()) {
                 log.registrarEvento(pDefensor.getNome() + " desmaiou!");
             }
         }
+    }
+
+    private String getEffectiveMsg(Movimento movimento, Pokemon pokemon){
+        if(movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo1()) >= 2D || movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo2()) >=2D
+        ) return " é super efetivo!";
+        else if(movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo1()) == 1D || movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo2()) == 1D){
+            return "";
+        }else return " não é nada efetivo...";
+
     }
 }

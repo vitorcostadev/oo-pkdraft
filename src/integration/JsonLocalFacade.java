@@ -2,25 +2,27 @@ package integration;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+
 import domain.models.CategoriaMovimento;
 import domain.models.Estatisticas;
-import domain.strategy.IAHeuristicaStrategy;
+import domain.strategy.HeuristicStrategy;
 import domain.models.Movimento;
 import domain.models.Natureza;
 import domain.PokemonBuilder;
 import domain.models.Tipo;
 import domain.models.Treinador;
 
+import static utils.Parser.*;
+
 /**
- * Implementa a fachada de dados realizando a leitura e interpretação de arquivos locais.
+ * Implementa a fachada de dados realizando a leitura e processamento seguro de arquivos locais.
  */
 public class JsonLocalFacade implements PokemonDadosFacade {
 
     private final List<PokemonBuilder> repositorioBase;
+    private final List<String> keysInt = List.of("hp", "atk", "def", "spa", "spd", "spe");
+    private final List<String> keysStr = List.of("nome", "t1", "t2");
 
     public JsonLocalFacade() {
         this.repositorioBase = new ArrayList<>();
@@ -36,78 +38,66 @@ public class JsonLocalFacade implements PokemonDadosFacade {
         }
     }
 
-    private void processarJson(String jsonBruto) {
-        this.repositorioBase.clear();
-        String[] blocos = jsonBruto.split("\\{");
+    private Movimento extrairMovimento(String json) {
+        String nome = extrairTexto(json, "name")
+                .orElseThrow(() -> new IllegalArgumentException("Campo 'name' nao encontrado"));
 
-        for (int i = 1; i < blocos.length; i++) {
-            String bloco = blocos[i];
-            int indiceFechamento = bloco.indexOf('}');
-            if (indiceFechamento == -1) {
-                continue;
+        Tipo tipo = Tipo.valueOf(extrairTexto(json, "type")
+                .orElseThrow(() -> new IllegalArgumentException("Campo 'type' nao encontrado")));
+
+        int power = Integer.parseInt(extrairTexto(json, "power")
+                .orElseThrow(() -> new IllegalArgumentException("Campo 'power' nao encontrado")));
+
+        String p = extrairTexto(json, "category")
+                .orElseThrow(() -> new IllegalArgumentException("Campo 'category' nao encontrado"));
+
+        return new Movimento(nome, tipo, power, CategoriaMovimento.fromString(p));
+    }
+
+    private void processarJson(String jsonBruto) {
+        repositorioBase.clear();
+
+        List<String> blocos = separarObjetos(jsonBruto)
+                .orElseThrow(() -> new RuntimeException("Objetos nao encontrados."));
+
+        for (String conteudo : blocos) {
+            Map<String, String> sMap = new HashMap<>();
+            Map<String, Integer> iMap = new LinkedHashMap<>();
+
+            for (String k : keysStr) {
+                sMap.put(k, extrairTexto(conteudo, k).orElse(null));
             }
 
-            String conteudo = bloco.substring(0, indiceFechamento);
+            for (String k : keysInt) {
+                iMap.put(k, Integer.parseInt(extrairTexto(conteudo, k)
+                        .orElseThrow(() -> new RuntimeException("Campo '" + k + "' nao encontrado"))));
+            }
 
-            String nome = extrairTexto(conteudo, "nome");
-            String t1Str = extrairTexto(conteudo, "t1");
-            String t2Str = extrairTexto(conteudo, "t2");
+            String m1 = extrairObjeto(conteudo, "m1").orElseThrow(() -> new RuntimeException("m1 ausente"));
+            String m2 = extrairObjeto(conteudo, "m2").orElseThrow(() -> new RuntimeException("m2 ausente"));
+            String m3 = extrairObjeto(conteudo, "m3").orElseThrow(() -> new RuntimeException("m3 ausente"));
+            String m4 = extrairObjeto(conteudo, "m4").orElseThrow(() -> new RuntimeException("m4 ausente"));
 
-            int hp = extrairInteiro(conteudo, "hp");
-            int atk = extrairInteiro(conteudo, "atk");
-            int def = extrairInteiro(conteudo, "def");
-            int spa = extrairInteiro(conteudo, "spa");
-            int spd = extrairInteiro(conteudo, "spd");
-            int spe = extrairInteiro(conteudo, "spe");
+            Tipo t1 = Tipo.valueOf(sMap.get("t1"));
+            Tipo t2 = sMap.get("t2") == null ? null : Tipo.valueOf(sMap.get("t2"));
 
-            String m1 = extrairTexto(conteudo, "m1");
-            String m2 = extrairTexto(conteudo, "m2");
-            String m3 = extrairTexto(conteudo, "m3");
-            String m4 = extrairTexto(conteudo, "m4");
-
-            Tipo t1 = Tipo.valueOf(t1Str);
-            Tipo t2 = (t2Str != null) ? Tipo.valueOf(t2Str) : null;
-
-            Estatisticas stats = new Estatisticas(hp, atk, def, spa, spd, spe);
+            Estatisticas stats = new Estatisticas(iMap.get("hp"), iMap.get("atk"), iMap.get("def"), iMap.get("spa"), iMap.get("spd"), iMap.get("spe"));
 
             PokemonBuilder builder = new PokemonBuilder()
-                    .setDadosBase(nome, t1, t2)
+                    .setDadosBase(sMap.get("nome"), t1, t2)
+                    .setNatureza(Natureza.HARDY)
                     .setEstatisticasPadrao(stats)
-                    .adicionarMovimento(new Movimento(m1, t1, 90, CategoriaMovimento.ESPECIAL))
-                    .adicionarMovimento(new Movimento(m2, Tipo.NORMAL, 80, CategoriaMovimento.FISICO))
-                    .adicionarMovimento(new Movimento(m3, t1, 75, CategoriaMovimento.ESPECIAL))
-                    .adicionarMovimento(new Movimento(m4, Tipo.LUTADOR, 100, CategoriaMovimento.FISICO));
+                    .adicionarMovimento(extrairMovimento(m1))
+                    .adicionarMovimento(extrairMovimento(m2))
+                    .adicionarMovimento(extrairMovimento(m3))
+                    .adicionarMovimento(extrairMovimento(m4));
 
-            this.repositorioBase.add(builder);
+            repositorioBase.add(builder);
         }
 
-        if (this.repositorioBase.isEmpty()) {
+        if (repositorioBase.isEmpty()) {
             carregarDadosDeContingencia();
         }
-    }
-
-    private String extrairTexto(String bloco, String chave) {
-        String parametro = "\"" + chave + "\":";
-        int inicio = bloco.indexOf(parametro);
-        if (inicio == -1) {
-            return null;
-        }
-        inicio += parametro.length();
-
-        int fimVirgula = bloco.indexOf(',', inicio);
-        int fimBloco = bloco.length();
-        int fim = (fimVirgula != -1) ? fimVirgula : fimBloco;
-
-        String valorBruto = bloco.substring(inicio, fim).trim();
-        if (valorBruto.equals("null")) {
-            return null;
-        }
-        return valorBruto.replace("\"", "").trim();
-    }
-
-    private int extrairInteiro(String bloco, String chave) {
-        String texto = extrairTexto(bloco, chave);
-        return (texto != null) ? Integer.parseInt(texto) : 0;
     }
 
     @Override
@@ -131,86 +121,99 @@ public class JsonLocalFacade implements PokemonDadosFacade {
     public List<Treinador> carregarLigaDesafiantes(String regiao) {
         List<Treinador> liga = new ArrayList<>();
 
-        Treinador lorelei = new Treinador("Lorelei (Elite 4)", new IAHeuristicaStrategy());
-        PokemonBuilder lapras = criarMolde("Lapras", Tipo.AGUA, Tipo.GELO, new Estatisticas(130, 85, 80, 85, 95, 60))
+        Treinador lorelei = new Treinador("Lorelei (Elite 4)", new HeuristicStrategy());
+        lorelei.adicionarPokemon(criarMolde("Lapras", Tipo.AGUA, Tipo.GELO, new Estatisticas(130, 85, 80, 85, 95, 60))
                 .setNatureza(Natureza.MODEST)
                 .adicionarMovimento(new Movimento("Ice Beam", Tipo.GELO, 90, CategoriaMovimento.ESPECIAL))
-                .adicionarMovimento(new Movimento("Surf", Tipo.AGUA, 90, CategoriaMovimento.ESPECIAL));
-        PokemonBuilder cloyster = criarMolde("Cloyster", Tipo.AGUA, Tipo.GELO, new Estatisticas(50, 95, 180, 85, 45, 70))
+                .adicionarMovimento(new Movimento("Surf", Tipo.AGUA, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Thunderbolt", Tipo.ELETRICO, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Psychic", Tipo.PSIQUICO, 90, CategoriaMovimento.ESPECIAL)).build());
+        lorelei.adicionarPokemon(criarMolde("Cloyster", Tipo.AGUA, Tipo.GELO, new Estatisticas(50, 95, 180, 85, 45, 70))
                 .setNatureza(Natureza.ADAMANT)
                 .adicionarMovimento(new Movimento("Icicle Crash", Tipo.GELO, 85, CategoriaMovimento.FISICO))
-                .adicionarMovimento(new Movimento("Explosion", Tipo.NORMAL, 250, CategoriaMovimento.FISICO));
-        lorelei.adicionarPokemon(lapras.build());
-        lorelei.adicionarPokemon(cloyster.build());
+                .adicionarMovimento(new Movimento("Hydro Pump", Tipo.AGUA, 110, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Poison Jab", Tipo.VENENOSO, 80, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Explosion", Tipo.NORMAL, 250, CategoriaMovimento.FISICO)).build());
 
-        Treinador bruno = new Treinador("Bruno (Elite 4)", new IAHeuristicaStrategy());
-        PokemonBuilder machamp = criarMolde("Machamp", Tipo.LUTADOR, null, new Estatisticas(90, 130, 80, 65, 85, 55))
+        Treinador bruno = new Treinador("Bruno (Elite 4)", new HeuristicStrategy());
+        bruno.adicionarPokemon(criarMolde("Machamp", Tipo.LUTADOR, null, new Estatisticas(90, 130, 80, 65, 85, 55))
                 .setNatureza(Natureza.ADAMANT)
                 .adicionarMovimento(new Movimento("Dynamic Punch", Tipo.LUTADOR, 100, CategoriaMovimento.FISICO))
-                .adicionarMovimento(new Movimento("Stone Edge", Tipo.PEDRA, 100, CategoriaMovimento.FISICO));
-        PokemonBuilder onix = criarMolde("Onix", Tipo.PEDRA, Tipo.TERRA, new Estatisticas(35, 45, 160, 30, 45, 70))
+                .adicionarMovimento(new Movimento("Stone Edge", Tipo.PEDRA, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Knock Off", Tipo.NOTURNO, 65, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO)).build());
+        bruno.adicionarPokemon(criarMolde("Onix", Tipo.PEDRA, Tipo.TERRA, new Estatisticas(35, 45, 160, 30, 45, 70))
                 .setNatureza(Natureza.ADAMANT)
                 .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO))
-                .adicionarMovimento(new Movimento("Rock Slide", Tipo.PEDRA, 75, CategoriaMovimento.FISICO));
-        bruno.adicionarPokemon(machamp.build());
-        bruno.adicionarPokemon(onix.build());
+                .adicionarMovimento(new Movimento("Rock Slide", Tipo.PEDRA, 75, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Iron Tail", Tipo.ACO, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Double-Edge", Tipo.NORMAL, 120, CategoriaMovimento.FISICO)).build());
 
-        Treinador agatha = new Treinador("Agatha (Elite 4)", new IAHeuristicaStrategy());
-        PokemonBuilder gengar = criarMolde("Gengar", Tipo.FANTASMA, Tipo.VENENOSO, new Estatisticas(60, 65, 60, 130, 75, 110))
+        Treinador agatha = new Treinador("Agatha (Elite 4)", new HeuristicStrategy());
+        agatha.adicionarPokemon(criarMolde("Gengar", Tipo.FANTASMA, Tipo.VENENOSO, new Estatisticas(60, 65, 60, 130, 75, 110))
                 .setNatureza(Natureza.TIMID)
                 .adicionarMovimento(new Movimento("Shadow Ball", Tipo.FANTASMA, 80, CategoriaMovimento.ESPECIAL))
-                .adicionarMovimento(new Movimento("Sludge Wave", Tipo.VENENOSO, 95, CategoriaMovimento.ESPECIAL));
-        PokemonBuilder arbok = criarMolde("Arbok", Tipo.VENENOSO, null, new Estatisticas(60, 95, 69, 65, 79, 80))
+                .adicionarMovimento(new Movimento("Sludge Wave", Tipo.VENENOSO, 95, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Thunderbolt", Tipo.ELETRICO, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Dazzling Gleam", Tipo.FADA, 80, CategoriaMovimento.ESPECIAL)).build());
+        agatha.adicionarPokemon(criarMolde("Arbok", Tipo.VENENOSO, null, new Estatisticas(60, 95, 69, 65, 79, 80))
                 .setNatureza(Natureza.ADAMANT)
                 .adicionarMovimento(new Movimento("Gunk Shot", Tipo.VENENOSO, 120, CategoriaMovimento.FISICO))
-                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO));
-        agatha.adicionarPokemon(gengar.build());
-        agatha.adicionarPokemon(arbok.build());
+                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Crunch", Tipo.NOTURNO, 80, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Rock Slide", Tipo.PEDRA, 75, CategoriaMovimento.FISICO)).build());
 
-        Treinador lance = new Treinador("Lance (Elite 4)", new IAHeuristicaStrategy());
-        PokemonBuilder dragonite = criarMolde("Dragonite", Tipo.DRAGAO, Tipo.VOADOR, new Estatisticas(91, 134, 95, 100, 100, 80))
+        Treinador lance = new Treinador("Lance (Elite 4)", new HeuristicStrategy());
+        lance.adicionarPokemon(criarMolde("Dragonite", Tipo.DRAGAO, Tipo.VOADOR, new Estatisticas(91, 134, 95, 100, 100, 80))
                 .setNatureza(Natureza.ADAMANT)
                 .adicionarMovimento(new Movimento("Outrage", Tipo.DRAGAO, 120, CategoriaMovimento.FISICO))
-                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO));
-        PokemonBuilder gyarados = criarMolde("Gyarados", Tipo.AGUA, Tipo.VOADOR, new Estatisticas(95, 125, 79, 60, 100, 81))
+                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Fire Punch", Tipo.FOGO, 75, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Extreme Speed", Tipo.NORMAL, 80, CategoriaMovimento.FISICO)).build());
+        lance.adicionarPokemon(criarMolde("Gyarados", Tipo.AGUA, Tipo.VOADOR, new Estatisticas(95, 125, 79, 60, 100, 81))
                 .setNatureza(Natureza.JOLLY)
                 .adicionarMovimento(new Movimento("Waterfall", Tipo.AGUA, 80, CategoriaMovimento.FISICO))
-                .adicionarMovimento(new Movimento("Ice Fang", Tipo.GELO, 65, CategoriaMovimento.FISICO));
-        lance.adicionarPokemon(dragonite.build());
-        lance.adicionarPokemon(gyarados.build());
+                .adicionarMovimento(new Movimento("Ice Fang", Tipo.GELO, 65, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Crunch", Tipo.NOTURNO, 80, CategoriaMovimento.FISICO)).build());
 
-        Treinador campeao = new Treinador("Blue (Campeão)", new IAHeuristicaStrategy());
-
-        PokemonBuilder pidgeot = criarMolde("Pidgeot", Tipo.NORMAL, Tipo.VOADOR, new Estatisticas(83, 80, 75, 70, 70, 101))
+        Treinador campeao = new Treinador("Blue (Campeao)", new HeuristicStrategy());
+        campeao.adicionarPokemon(criarMolde("Pidgeot", Tipo.NORMAL, Tipo.VOADOR, new Estatisticas(83, 80, 75, 70, 70, 101))
                 .setNatureza(Natureza.JOLLY)
-                .adicionarMovimento(new Movimento("Brave Bird", Tipo.VOADOR, 120, CategoriaMovimento.FISICO));
-
-        PokemonBuilder alakazam = criarMolde("Alakazam", Tipo.PSIQUICO, null, new Estatisticas(55, 50, 45, 135, 95, 120))
+                .adicionarMovimento(new Movimento("Brave Bird", Tipo.VOADOR, 120, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Double-Edge", Tipo.NORMAL, 120, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("U-turn", Tipo.INSETO, 70, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Steel Wing", Tipo.ACO, 70, CategoriaMovimento.FISICO)).build());
+        campeao.adicionarPokemon(criarMolde("Alakazam", Tipo.PSIQUICO, null, new Estatisticas(55, 50, 45, 135, 95, 120))
                 .setNatureza(Natureza.TIMID)
-                .adicionarMovimento(new Movimento("Psychic", Tipo.PSIQUICO, 90, CategoriaMovimento.ESPECIAL));
-
-        PokemonBuilder rhydon = criarMolde("Rhydon", Tipo.TERRA, Tipo.PEDRA, new Estatisticas(105, 130, 120, 45, 45, 40))
+                .adicionarMovimento(new Movimento("Psychic", Tipo.PSIQUICO, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Shadow Ball", Tipo.FANTASMA, 80, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Focus Blast", Tipo.LUTADOR, 120, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Energy Ball", Tipo.GRAMA, 90, CategoriaMovimento.ESPECIAL)).build());
+        campeao.adicionarPokemon(criarMolde("Rhydon", Tipo.TERRA, Tipo.PEDRA, new Estatisticas(105, 130, 120, 45, 45, 40))
                 .setNatureza(Natureza.ADAMANT)
-                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO));
-
-        PokemonBuilder exeggutor = criarMolde("Exeggutor", Tipo.GRAMA, Tipo.PSIQUICO, new Estatisticas(95, 95, 85, 125, 65, 55))
+                .adicionarMovimento(new Movimento("Earthquake", Tipo.TERRA, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Stone Edge", Tipo.PEDRA, 100, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Megahorn", Tipo.INSETO, 120, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Hammer Arm", Tipo.LUTADOR, 100, CategoriaMovimento.FISICO)).build());
+        campeao.adicionarPokemon(criarMolde("Exeggutor", Tipo.GRAMA, Tipo.PSIQUICO, new Estatisticas(95, 95, 85, 125, 65, 55))
                 .setNatureza(Natureza.MODEST)
-                .adicionarMovimento(new Movimento("Giga Drain", Tipo.GRAMA, 75, CategoriaMovimento.ESPECIAL));
-
-        PokemonBuilder arcanine = criarMolde("Arcanine", Tipo.FOGO, null, new Estatisticas(90, 110, 80, 100, 80, 95))
+                .adicionarMovimento(new Movimento("Giga Drain", Tipo.GRAMA, 75, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Psychic", Tipo.PSIQUICO, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Sludge Bomb", Tipo.VENENOSO, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Ancient Power", Tipo.PEDRA, 60, CategoriaMovimento.ESPECIAL)).build());
+        campeao.adicionarPokemon(criarMolde("Arcanine", Tipo.FOGO, null, new Estatisticas(90, 110, 80, 100, 80, 95))
                 .setNatureza(Natureza.JOLLY)
-                .adicionarMovimento(new Movimento("Flare Blitz", Tipo.FOGO, 120, CategoriaMovimento.FISICO));
-
-        PokemonBuilder blastoise = criarMolde("Blastoise", Tipo.AGUA, null, new Estatisticas(79, 83, 100, 85, 105, 78))
+                .adicionarMovimento(new Movimento("Flare Blitz", Tipo.FOGO, 120, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Extreme Speed", Tipo.NORMAL, 80, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Wild Charge", Tipo.ELETRICO, 90, CategoriaMovimento.FISICO))
+                .adicionarMovimento(new Movimento("Close Combat", Tipo.LUTADOR, 120, CategoriaMovimento.FISICO)).build());
+        campeao.adicionarPokemon(criarMolde("Blastoise", Tipo.AGUA, null, new Estatisticas(79, 83, 100, 85, 105, 78))
                 .setNatureza(Natureza.BOLD)
-                .adicionarMovimento(new Movimento("Hydro Pump", Tipo.AGUA, 110, CategoriaMovimento.ESPECIAL));
-
-        campeao.adicionarPokemon(pidgeot.build());
-        campeao.adicionarPokemon(alakazam.build());
-        campeao.adicionarPokemon(rhydon.build());
-        campeao.adicionarPokemon(exeggutor.build());
-        campeao.adicionarPokemon(arcanine.build());
-        campeao.adicionarPokemon(blastoise.build());
+                .adicionarMovimento(new Movimento("Hydro Pump", Tipo.AGUA, 110, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Ice Beam", Tipo.GELO, 90, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Aura Sphere", Tipo.LUTADOR, 80, CategoriaMovimento.ESPECIAL))
+                .adicionarMovimento(new Movimento("Dark Pulse", Tipo.NOTURNO, 80, CategoriaMovimento.ESPECIAL)).build());
 
         liga.add(lorelei);
         liga.add(bruno);
@@ -225,10 +228,6 @@ public class JsonLocalFacade implements PokemonDadosFacade {
         this.repositorioBase.clear();
         this.repositorioBase.add(criarMolde("Charizard", Tipo.FOGO, Tipo.VOADOR, new Estatisticas(78, 84, 78, 109, 85, 100))
                 .adicionarMovimento(new Movimento("Flamethrower", Tipo.FOGO, 90, CategoriaMovimento.ESPECIAL)));
-        this.repositorioBase.add(criarMolde("Venusaur", Tipo.GRAMA, Tipo.VENENOSO, new Estatisticas(80, 82, 83, 100, 100, 80))
-                .adicionarMovimento(new Movimento("Giga Drain", Tipo.GRAMA, 75, CategoriaMovimento.ESPECIAL)));
-        this.repositorioBase.add(criarMolde("Blastoise", Tipo.AGUA, null, new Estatisticas(79, 83, 100, 85, 105, 78))
-                .adicionarMovimento(new Movimento("Hydro Pump", Tipo.AGUA, 110, CategoriaMovimento.ESPECIAL)));
     }
 
     private PokemonBuilder criarMolde(String nome, Tipo t1, Tipo t2, Estatisticas base) {

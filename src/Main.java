@@ -9,10 +9,6 @@ import view.CLIView;
 void main() {
     CLIView view = new CLIView();
     PokemonDadosFacade facade = new JsonLocalFacade();
-
-    DraftController moduloDraft = new DraftController();
-    Treinador jogador = moduloDraft.iniciarDraft(facade, view);
-
-    CampanhaController moduloCampanha = new CampanhaController();
-    moduloCampanha.iniciarCampanha(jogador, facade, view);
+    Treinador jogador = DraftController.iniciarDraft(facade, view);
+    new CampanhaController().iniciarCampanha(jogador, facade, view);
 }

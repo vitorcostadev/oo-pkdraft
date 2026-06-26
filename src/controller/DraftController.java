@@ -4,7 +4,7 @@ import integration.PokemonDadosFacade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import domain.strategy.IAHeuristicaStrategy;
+import domain.strategy.HeuristicStrategy;
 import domain.models.Atributo;
 import domain.models.Natureza;
 import domain.Pokemon;
@@ -15,13 +15,13 @@ import view.CLIView;
 /**
  * Controla o laço de repetição responsável pela seletividade restrita e formação da equipa inicial.
  */
-public class DraftController {
+public abstract class DraftController {
 
-    public Treinador iniciarDraft(PokemonDadosFacade facade, CLIView view) {
+    public static Treinador iniciarDraft(PokemonDadosFacade facade, CLIView view) {
         view.exibirMensagem("=== POKEMON DRAFT ===");
         view.exibirMensagem("Prepare-se para escolher uma equipe de 6 pokémons.\n");
 
-        Treinador jogador = new Treinador("Usuário", new IAHeuristicaStrategy());
+        Treinador jogador = new Treinador("Usuário", new HeuristicStrategy());
         Random aleatorizador = new Random();
         Natureza[] catalogoNaturezas = Natureza.values();
 
@@ -59,7 +59,7 @@ public class DraftController {
             view.exibirMensagem("Escolha registrada: " + escolhido.getNome() + " de natureza " + escolhido.getNatureza().name() + " juntou-se a equipe.");
         }
 
-        view.exibirMensagem("\nA sua equipe de combate esta fechada.");
+        view.exibirMensagem("\nA sua equipe de pokémons esta fechada.");
         return jogador;
     }
 }

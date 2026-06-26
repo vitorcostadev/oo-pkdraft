@@ -12,10 +12,13 @@ public enum Tipo {
         return e1 * e2;
     }
 
-    private static double obterEfetividadeBase(Tipo atacante, Tipo defensor) {
+    public double obterEfetividadeBase(Tipo atacante, Tipo defensor) {
         if (defensor == null) {
             return 1.0;
         }
+
+        if(atacante == null) atacante = this;
+
         switch (atacante) {
             case NORMAL:
                 if (defensor == PEDRA || defensor == ACO) return 0.5;

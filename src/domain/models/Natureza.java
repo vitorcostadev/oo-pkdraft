@@ -45,6 +45,8 @@ public enum Natureza {
      * @return Valor decimal representativo do modificador.
      */
     public double obterMultiplicador(Atributo a) {
+        if(a == null) return 0;
+
         if (this.atributoAumentado == a && this.atributoDiminuido != a) {
             return 1.1;
         }

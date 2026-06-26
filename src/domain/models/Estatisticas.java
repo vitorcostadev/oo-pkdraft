@@ -43,4 +43,16 @@ public class Estatisticas {
     public int getHp() {
         return hp;
     }
+
+    @Override
+    public String toString() {
+        return "Estatisticas{" +
+                "HP=" + hp +
+                ", ATK=" + ataque +
+                ", DEF=" + defesa +
+                ", SPATK=" + ataqueEspecial +
+                ", SPDEF=" + defesaEspecial +
+                ", SPE=" + velocidade +
+                '}';
+    }
 }

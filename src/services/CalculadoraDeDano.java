@@ -19,17 +19,17 @@ public class CalculadoraDeDano {
      * @return Numero inteiro absoluto de pontos de dano a aplicar.
      */
     public int calcular(Pokemon atacante, Pokemon defensor, Movimento mov) {
-        if (mov.getCategoria() == CategoriaMovimento.STATUS) {
+        if (mov.categoria() == CategoriaMovimento.STATUS) {
             return 0;
         }
 
         int nivel = 50;
-        int poder = mov.getPoder();
+        int poder = mov.poder();
 
         int atributoAtacante;
         int atributoDefensor;
 
-        if (mov.getCategoria() == CategoriaMovimento.FISICO) {
+        if (mov.categoria() == CategoriaMovimento.FISICO) {
             atributoAtacante = atacante.getEstatisticas().getValor(Atributo.ATAQUE);
             atributoDefensor = defensor.getEstatisticas().getValor(Atributo.DEFESA);
         } else {
@@ -38,11 +38,11 @@ public class CalculadoraDeDano {
         }
 
         double stab = 1.0;
-        if (atacante.temTipo(mov.getTipo())) {
+        if (atacante.temTipo(mov.tipo())) {
             stab = 1.5;
         }
 
-        double efetividade = mov.getTipo().calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
+        double efetividade = mov.tipo().calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
         if (efetividade == 0.0) {
             return 0;
         }
