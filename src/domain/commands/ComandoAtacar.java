@@ -1,8 +1,12 @@
 package domain.commands;
 
 import controller.LogService;
-import domain.models.*;
-import domain.Pokemon;
+import domain.models.battle.Batalha;
+import domain.models.battle.Pokemon;
+import domain.models.battle.Treinador;
+import domain.models.pokemon.Atributo;
+import domain.models.pokemon.CategoriaMovimento;
+import domain.models.pokemon.Movimento;
 import services.CalculadoraDeDano;
 
 /**
@@ -22,7 +26,7 @@ public class ComandoAtacar implements ComandoTurno {
     @Override
     public int getPrioridade() {
         return 0;
-    }
+    } // 0, pois no turno em que ele ataca, a prioridade não existe.
 
     @Override
     public int getVelocidadeAtor() {
@@ -30,6 +34,11 @@ public class ComandoAtacar implements ComandoTurno {
         return ativo != null ? ativo.getEstatisticas().getValor(Atributo.VELOCIDADE) : 0;
     }
 
+    /**
+     * Executa a ação de atacar o Pókemon inimigo e registrar no 'log'.
+     * @param batalha A instância do objeto que representa a batalha atual.
+     * @param log A instância do objeto 'log' para registrar o evento.
+     */
     @Override
     public void executar(Batalha batalha, LogService log) {
         Pokemon pAtacante = atacante.getPokemonAtivo();
@@ -58,12 +67,18 @@ public class ComandoAtacar implements ComandoTurno {
         }
     }
 
-    private String getEffectiveMsg(Movimento movimento, Pokemon pokemon){
-        if(movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo1()) >= 2D || movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo2()) >=2D
-        ) return " é super efetivo!";
-        else if(movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo1()) == 1D || movimento.tipo().obterEfetividadeBase(null, pokemon.getTipo2()) == 1D){
-            return "";
-        }else return " não é nada efetivo...";
+    private String getEffectiveMsg(Movimento movimento, Pokemon pokemon) {
+        double efetividadeTotal = movimento.tipo().calcularEfetividade(
+                pokemon.getTipo1(),
+                pokemon.getTipo2()
+        );
 
+        if (efetividadeTotal > 1.0) {
+            return " É super efetivo!";
+        } else if (efetividadeTotal < 1.0 && efetividadeTotal > 0.0) {
+            return " Não é muito efetivo...";
+        }
+
+        return "";
     }
 }

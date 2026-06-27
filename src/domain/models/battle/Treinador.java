@@ -1,15 +1,11 @@
-package domain.models;
+package domain.models.battle;
 
-import domain.Pokemon;
 import domain.commands.ComandoTurno;
 import domain.strategy.EstrategiaDecisao;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Gerencia a equipe de Pokémons e expõe o elemento que esta na primeira posição como ativo.
- */
 public class Treinador {
     private final String nome;
     private final List<Pokemon> equipe;

@@ -1,12 +1,11 @@
-package domain.models;
+package domain.models.battle;
 
 import controller.CampanhaController;
 import controller.LogService;
-import domain.Pokemon;
 import domain.state.BatalhaState;
 
 /**
- * Controla as regras de execucao dos turnos e gerenciamento dos treinadores envolvidos.
+ * Controla as regras de execução dos turnos e gerenciamento dos treinadores envolvidos.
  */
 public class Batalha {
     private final Treinador jogador;

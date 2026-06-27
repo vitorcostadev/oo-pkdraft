@@ -1,4 +1,4 @@
-package domain.models;
+package domain.models.pokemon;
 
 /**
  * Define as categorias de um movimento.

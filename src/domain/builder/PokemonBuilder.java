@@ -1,9 +1,10 @@
-package domain;
+package domain.builder;
 
-import domain.models.Estatisticas;
-import domain.models.Movimento;
-import domain.models.Natureza;
-import domain.models.Tipo;
+import domain.models.battle.Pokemon;
+import domain.models.pokemon.Estatisticas;
+import domain.models.pokemon.Movimento;
+import domain.models.pokemon.Natureza;
+import domain.models.pokemon.Tipo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,11 +76,13 @@ public class PokemonBuilder {
     }
 
     /**
-     * Finaliza a construção e devolve a entidade integra.
+     * Finaliza a construção e devolve a entidade construída.
      * @return Instancia valida e calculada de Pokemon.
      */
     public Pokemon build() {
-        if (this.nome == null || this.baseStats == null || this.natureza == null || this.tipo1 == null) {
+        if (this.nome == null
+                || this.baseStats == null
+                || this.natureza == null || this.tipo1 == null) {
             throw new IllegalStateException("Faltam parâmetros obrigatórios para construir o Pokemon.");
         }
         return new Pokemon(this);

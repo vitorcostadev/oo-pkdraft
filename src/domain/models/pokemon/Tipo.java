@@ -1,4 +1,4 @@
-package domain.models;
+package domain.models.pokemon;
 
 /**
  * Define os tipos e gerencia a matriz de efetividades, fraquezas e imunidades.

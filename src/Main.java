@@ -1,14 +1,17 @@
 import controller.CampanhaController;
 import controller.DraftController;
-import integration.JsonLocalFacade;
-import integration.PokemonDadosFacade;
-import domain.models.Treinador;
+import domain.models.battle.Treinador;
+import domain.facade.JsonLocalFacade;
+import domain.facade.PokemonDadosFacade;
 import view.CLIView;
 
 
-void main() {
-    CLIView view = new CLIView();
-    PokemonDadosFacade facade = new JsonLocalFacade();
-    Treinador jogador = DraftController.iniciarDraft(facade, view);
-    new CampanhaController().iniciarCampanha(jogador, facade, view);
+public class Main{
+    public static void main(String... args) {
+        CLIView view = new CLIView();
+        PokemonDadosFacade facade = new JsonLocalFacade();
+        DraftController draft = new DraftController();
+        Treinador jogador = draft.iniciarDraft(facade, view);
+        new CampanhaController().iniciarCampanha(jogador, facade, view);
+    }
 }

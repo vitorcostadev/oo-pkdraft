@@ -3,17 +3,20 @@ package domain.strategy;
 import domain.commands.ComandoAtacar;
 import domain.commands.ComandoTrocar;
 import domain.commands.ComandoTurno;
-import domain.Pokemon;
-import domain.models.Movimento;
-import domain.models.Treinador;
+import domain.models.battle.Pokemon;
+import domain.models.pokemon.Movimento;
+import domain.models.battle.Treinador;
 import services.CalculadoraDeDano;
 
-/**
- * Implementa a lógica de decisao autonoma baseada em heuristica de risco e efetividade elementar.
- */
 public class HeuristicStrategy implements EstrategiaDecisao {
     private boolean ultimoTurnoFoiTroca = false;
 
+    /**
+     * Decide a ação que o pokémon aliado vai exercer (se vai trocar, ou atacar).
+      * @param aliado Representa o objeto treinador do utilizador.
+     * @param inimigo Representa o objeto treinador inimigo.
+     * @return A chamada polimórfica da interface ComandoTurno, que ditará a ação a ser tomada.
+     */
     @Override
     public ComandoTurno escolherAcao(Treinador aliado, Treinador inimigo) {
         Pokemon ativo = aliado.getPokemonAtivo();
@@ -32,6 +35,13 @@ public class HeuristicStrategy implements EstrategiaDecisao {
         return new ComandoAtacar(aliado, melhorMovimento);
     }
 
+    /**
+     * Faz uma busca em todos os Pokémons disponíveis do treinador aliado, e retornará
+     * o melhor Pokémon para substituir o atual ativo.
+     * @param aliado Representa o objeto treinador do utilizador.
+     * @param inimigo Representa o Pokémon do inimigo.
+     * @return O melhor Pokémon para assumir o lugar do antigo ativo.
+     */
     @Override
     public Pokemon escolherSubstituto(Treinador aliado, Pokemon inimigo) {
         Pokemon melhor = null;
@@ -59,6 +69,10 @@ public class HeuristicStrategy implements EstrategiaDecisao {
         Pokemon ativo = aliado.getPokemonAtivo();
         double efetividadeInimiga = calcularRiscoTipagem(inimigo, ativo);
         double nossaEfetividade = calcularRiscoTipagem(ativo, inimigo);
+
+        if (nossaEfetividade == 0.0) {
+            return true;
+        }
 
         return efetividadeInimiga >= 2.0 && nossaEfetividade <= 0.5;
     }

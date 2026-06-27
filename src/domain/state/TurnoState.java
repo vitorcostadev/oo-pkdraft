@@ -3,7 +3,7 @@ package domain.state;
 import controller.CampanhaController;
 import controller.LogService;
 import domain.commands.ComandoTurno;
-import domain.models.Batalha;
+import domain.models.battle.Batalha;
 /**
  * Aplica a ordem de prioridades e resolve as ações preparadas para o turno corrente.
  */
@@ -14,6 +14,12 @@ public class TurnoState implements BatalhaState {
         this.log = log;
     }
 
+    /**
+     * Decide a ordem de prioridades dos Pokémons ativos e solicita a ação dos Pokémons
+     * dos treinadores.
+     * @param batalha A instância do objeto Batalha atual.
+     * @param context O contexto da campanha (quem ele está enfrentando).
+     */
     @Override
     public void executar(Batalha batalha, CampanhaController context) {
         batalha.verificarEForcarSubstituicoes(this.log);

@@ -1,4 +1,4 @@
-package domain.models;
+package domain.models.pokemon;
 
 /**
  * Abstrai e encapsula o bloco de dados numéricos de atributos de um Pokemon.

@@ -1,9 +1,9 @@
 package controller;
 
-import integration.PokemonDadosFacade;
+import domain.facade.PokemonDadosFacade;
 import java.util.List;
-import domain.models.Batalha;
-import domain.models.Treinador;
+import domain.models.battle.Batalha;
+import domain.models.battle.Treinador;
 import domain.state.TurnoState;
 import view.CLIView;
 

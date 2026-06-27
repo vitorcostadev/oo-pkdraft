@@ -1,10 +1,10 @@
 package services;
 
 import java.util.Random;
-import domain.models.Atributo;
-import domain.models.CategoriaMovimento;
-import domain.models.Movimento;
-import domain.Pokemon;
+import domain.models.pokemon.Atributo;
+import domain.models.pokemon.CategoriaMovimento;
+import domain.models.pokemon.Movimento;
+import domain.models.battle.Pokemon;
 
 /**
  * Isola as formulas oficiais de calculo de efetividade e dano.
@@ -47,8 +47,8 @@ public class CalculadoraDeDano {
             return 0;
         }
 
-        Random aleatorizador = new Random();
-        double aleatorio = 0.85 + (aleatorizador.nextDouble() * 0.15);
+        Random aleatorizado = new Random();
+        double aleatorio = 0.85 + (aleatorizado.nextDouble() * 0.15);
 
         double modificador = stab * efetividade * aleatorio;
 

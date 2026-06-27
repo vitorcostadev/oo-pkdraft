@@ -1,4 +1,4 @@
-package domain.models;
+package domain.models.pokemon;
 
 /**
  * Define os atributos dos status de cada Pokémon.

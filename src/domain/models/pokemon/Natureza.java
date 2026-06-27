@@ -1,4 +1,4 @@
-package domain.models;
+package domain.models.pokemon;
 
 /**
  * Gerencia as naturezas dos Pokémons,

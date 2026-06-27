@@ -1,8 +1,8 @@
-package integration;
+package domain.facade;
 
 import java.util.List;
-import domain.PokemonBuilder;
-import domain.models.Treinador;
+import domain.builder.PokemonBuilder;
+import domain.models.battle.Treinador;
 
 /**
  * Contrato de fachada para isolar a complexidade da obtenção de dados externos.

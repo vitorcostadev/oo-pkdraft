@@ -1,12 +1,12 @@
 package domain.commands;
 
 import controller.LogService;
-import domain.Pokemon;
-import domain.models.Batalha;
-import domain.models.Treinador;
+import domain.models.battle.Pokemon;
+import domain.models.battle.Batalha;
+import domain.models.battle.Treinador;
 
 /**
- * Representa e executa a acao tática de substituicao do Pokemon em campo.
+ * Representa e executa a ação de substituição do Pokemon em campo.
  */
 public class ComandoTrocar implements ComandoTurno {
     private final Treinador treinador;
@@ -27,6 +27,11 @@ public class ComandoTrocar implements ComandoTurno {
         return 0;
     }
 
+    /**
+     * Executa a troca do Pokémon ativo com o substituto.
+     * @param batalha A instância atual do objeto Batalha.
+     * @param log A instância atual do objeto LogService.
+     */
     @Override
     public void executar(Batalha batalha, LogService log) {
         Pokemon atual = treinador.getPokemonAtivo();

@@ -1,7 +1,7 @@
 package domain.commands;
 
 import controller.LogService;
-import domain.models.Batalha;
+import domain.models.battle.Batalha;
 
 /**
  * Contrato para execução padronizada das ações de turno.

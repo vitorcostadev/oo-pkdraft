@@ -1,13 +1,11 @@
-package domain;
+package domain.models.battle;
 
-import domain.models.*;
+import domain.builder.PokemonBuilder;
+import domain.models.pokemon.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Entidade que representa um Pokemon.
- */
 public class Pokemon {
     private final String nome;
     private final int nivel;
@@ -21,7 +19,7 @@ public class Pokemon {
     private final List<Movimento> movimentos;
     private int hpAtual;
 
-    Pokemon(PokemonBuilder builder) {
+    public Pokemon(PokemonBuilder builder) {
         this.nome = builder.getNome();
         this.nivel = builder.getNivel();
         this.natureza = builder.getNatureza();
@@ -31,11 +29,11 @@ public class Pokemon {
         this.ivs = builder.getIvs();
         this.evs = builder.getEvs();
         this.movimentos = new ArrayList<>(builder.getMovimentos());
-        calcularStatsDeCombate();
+        calcularStatsLevel();
         this.hpAtual = this.statsCombate.getHp();
     }
 
-    private void calcularStatsDeCombate() {
+    private void calcularStatsLevel() {
         int hp = calcularHpMaximo();
         int ataque = calcularEstatistica(Atributo.ATAQUE);
         int defesa = calcularEstatistica(Atributo.DEFESA);
@@ -64,8 +62,8 @@ public class Pokemon {
     }
 
     /**
-     * Aplica redução no ponto de vida atual garantindo que o valor não seja negativo.
-     * @param dano Quantidade de dano bruto calculada.
+     * Aplica redução HP atual garantindo que o valor não seja negativo.
+     * @param dano Quantidade de dano calculada.
      */
     public void receberDano(int dano) {
         this.hpAtual -= dano;
@@ -75,7 +73,7 @@ public class Pokemon {
     }
 
     /**
-     * Restaura os pontos de vida para a capacidade maxima calculada.
+     * Restaura o HP para a capacidade maxima.
      */
     public void curarTotalmente() {
         this.hpAtual = this.statsCombate.getHp();
@@ -91,7 +89,7 @@ public class Pokemon {
     }
 
     /**
-     * Valida se o Pokemon zerou seus pontos de vida.
+     * Valida se o Pokemon está desmaiado.
      * @return True caso o hpAtual seja zero.
      */
     public boolean isDesmaiado() {

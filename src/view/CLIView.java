@@ -1,8 +1,8 @@
 package view;
 
 import java.util.Scanner;
-import domain.models.Batalha;
-import domain.Pokemon;
+import domain.models.battle.Batalha;
+import domain.models.battle.Pokemon;
 
 /**
  * Controla as interações de exibição e leitura de dados no terminal de comandos.

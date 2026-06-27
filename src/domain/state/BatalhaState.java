@@ -1,7 +1,7 @@
 package domain.state;
 
 import controller.CampanhaController;
-import domain.models.Batalha;
+import domain.models.battle.Batalha;
 
 /**
  * Define o contrato para os estados mutáveis da batalha.

@@ -1,27 +1,27 @@
 package controller;
 
-import integration.PokemonDadosFacade;
+import domain.facade.PokemonDadosFacade;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import domain.strategy.HeuristicStrategy;
-import domain.models.Atributo;
-import domain.models.Natureza;
-import domain.Pokemon;
-import domain.PokemonBuilder;
-import domain.models.Treinador;
+import domain.models.pokemon.Atributo;
+import domain.models.pokemon.Natureza;
+import domain.models.battle.Pokemon;
+import domain.builder.PokemonBuilder;
+import domain.models.battle.Treinador;
 import view.CLIView;
 
 /**
- * Controla o laço de repetição responsável pela seletividade restrita e formação da equipa inicial.
+ * Controla o laco de recrutamento restrito e formacao da equipe do utilizador.
  */
-public abstract class DraftController {
+public class DraftController {
 
-    public static Treinador iniciarDraft(PokemonDadosFacade facade, CLIView view) {
+    public Treinador iniciarDraft(PokemonDadosFacade facade, CLIView view) {
         view.exibirMensagem("=== POKEMON DRAFT ===");
-        view.exibirMensagem("Prepare-se para escolher uma equipe de 6 pokémons.\n");
+        view.exibirMensagem("Prepare-se para escolher uma equipe de 6 pokemons.\n");
 
-        Treinador jogador = new Treinador("Usuário", new HeuristicStrategy());
+        Treinador jogador = new Treinador("Usuario", new HeuristicStrategy());
         Random aleatorizador = new Random();
         Natureza[] catalogoNaturezas = Natureza.values();
 
@@ -35,7 +35,7 @@ public abstract class DraftController {
                 opcoes.add(b.build());
             }
 
-            view.exibirMensagem("\nSelecione o pokémon n°" + (jogador.getEquipe().size() + 1) + ":");
+            view.exibirMensagem("\nSelecione o pokemon n°" + (jogador.getEquipe().size() + 1) + ":");
 
             for (int i = 0; i < opcoes.size(); i++) {
                 Pokemon p = opcoes.get(i);
@@ -56,10 +56,10 @@ public abstract class DraftController {
             Pokemon escolhido = opcoes.get(indiceEscolhido - 1);
             jogador.adicionarPokemon(escolhido);
 
-            view.exibirMensagem("Escolha registrada: " + escolhido.getNome() + " de natureza " + escolhido.getNatureza().name() + " juntou-se a equipe.");
+            view.exibirMensagem("Escolha registrada: " + escolhido.getNome() + " | Natureza: " + escolhido.getNatureza().name() + " juntou-se a equipe.");
         }
 
-        view.exibirMensagem("\nA sua equipe de pokémons esta fechada.");
+        view.exibirMensagem("\nA sua equipe de pokemons esta fechada.");
         return jogador;
     }
 }
