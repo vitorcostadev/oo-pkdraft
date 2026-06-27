@@ -53,6 +53,14 @@ private void carregarDadosDoDisco() {
     }
 }
 ```
+### Diagrama da Arquitetura
+
+<div align="center">
+  
+  <img src="logs/diagram.png" width="85%" alt="Diagrama UML de Classes do Pokémon Draft" />
+  
+</div>
+
 ## Como executar
 Para rodar esse projeto, é bem simples, você só precisa ter o Java instalado (21+):
 1. Clone este projeto ou baixe o `.zip`.
