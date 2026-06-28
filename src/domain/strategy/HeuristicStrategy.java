@@ -4,18 +4,18 @@ import domain.commands.ComandoAtacar;
 import domain.commands.ComandoTrocar;
 import domain.commands.ComandoTurno;
 import domain.models.battle.Pokemon;
-import domain.models.pokemon.Movimento;
 import domain.models.battle.Treinador;
+import domain.models.pokemon.Movimento;
 import services.CalculadoraDeDano;
 
 public class HeuristicStrategy implements EstrategiaDecisao {
     private boolean ultimoTurnoFoiTroca = false;
 
     /**
-     * Decide a ação que o pokémon aliado vai exercer (se vai trocar, ou atacar).
+     * Decide a ação que o Pokémon aliado vai exercer (se vai trocar, ou atacar).
       * @param aliado Representa o objeto treinador do utilizador.
      * @param inimigo Representa o objeto treinador inimigo.
-     * @return A chamada polimórfica da interface ComandoTurno, que ditará a ação a ser tomada.
+     * @return A chamada polimórfica da ‘interface’ ComandoTurno, que ditará a ação a ser tomada.
      */
     @Override
     public ComandoTurno escolherAcao(Treinador aliado, Treinador inimigo) {
@@ -66,35 +66,32 @@ public class HeuristicStrategy implements EstrategiaDecisao {
     }
 
     private boolean deveTrocar(Treinador aliado, Pokemon inimigo) {
-        Pokemon ativo = aliado.getPokemonAtivo();
-        double efetividadeInimiga = calcularRiscoTipagem(inimigo, ativo);
-        double nossaEfetividade = calcularRiscoTipagem(ativo, inimigo);
+        double efetividadeInimiga = calcularRiscoTipagem(
+                inimigo, aliado.getPokemonAtivo());
+        double nossaEfetividade = calcularRiscoTipagem(aliado.getPokemonAtivo(), inimigo);
 
-        if (nossaEfetividade == 0.0) {
-            return true;
-        }
-
-        return efetividadeInimiga >= 2.0 && nossaEfetividade <= 0.5;
+        return nossaEfetividade == 0D || (efetividadeInimiga >= 2D && nossaEfetividade <= 0.5);
     }
 
     private double calcularRiscoTipagem(Pokemon atacante, Pokemon defensor) {
-        double risco1 = atacante.getTipo1().calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
+        double risco1 = atacante.getTipo1()
+                .calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
         double risco2 = 0.0;
 
         if (atacante.getTipo2() != null) {
-            risco2 = atacante.getTipo2().calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
+            risco2 = atacante.getTipo2()
+                    .calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
         }
 
         return Math.max(risco1, risco2);
     }
 
     private Movimento obterMelhorMovimento(Pokemon atacante, Pokemon defensor) {
-        CalculadoraDeDano calculadora = new CalculadoraDeDano();
-        Movimento melhor = atacante.getMovimentos().get(0);
+        Movimento melhor = atacante.getMovimentos().getFirst();
         int maiorDano = -1;
 
         for (Movimento mov : atacante.getMovimentos()) {
-            int dano = calculadora.calcular(atacante, defensor, mov);
+            int dano = CalculadoraDeDano.calcular(atacante, defensor, mov);
             if (dano > maiorDano) {
                 maiorDano = dano;
                 melhor = mov;

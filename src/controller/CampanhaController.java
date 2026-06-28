@@ -1,22 +1,21 @@
 package controller;
 
 import domain.facade.PokemonDadosFacade;
-import java.util.List;
 import domain.models.battle.Batalha;
 import domain.models.battle.Treinador;
 import domain.state.TurnoState;
-import view.CLIView;
+import view.InterfaceJogo;
 
-/**
- * Controla a sequencia de batalhas contra os integrantes da Liga Pokemon.
- */
+import java.util.List;
+
 public class CampanhaController {
 
-    public void iniciarCampanha(Treinador jogador, PokemonDadosFacade facade, CLIView view) {
+    public void iniciarCampanha(Treinador jogador, PokemonDadosFacade facade, InterfaceJogo view) {
         LogService log = new LogService(view);
         log.registrarEvento("[AVISO] : A batalha vai começar...");
 
-        List<Treinador> liga = facade.carregarLigaDesafiantes("Kanto");
+        List<Treinador> liga;
+        liga = facade.carregarLigaDesafiantes("Kanto");
 
         for (int i = 0; i < liga.size(); i++) {
             Treinador oponente = liga.get(i);
@@ -33,7 +32,7 @@ public class CampanhaController {
             }
 
             if (!jogador.temPokemonApto()) {
-                view.exibirMensagem("\nTodos os seus Pokemons desmaiaram. Foi derrotado por " + oponente.getNome() + ".");
+                view.exibirMensagem("\nTodos os seus Pokémons desmaiaram. Foi derrotado por " + oponente.getNome() + ".");
                 log.registrarEvento("Resumo: Derrota perante " + oponente.getNome() + ".");
                 break;
             } else {
@@ -45,16 +44,16 @@ public class CampanhaController {
                 }
 
                 jogador.curarEquipe();
-                view.exibirMensagem("[AVISO] : Seus pokémons tiveram seu HP restaurado.");
+                view.exibirMensagem("[AVISO] : Seus Pokémons tiveram seu HP restaurado.");
             }
         }
 
         if (jogador.temPokemonApto()) {
-            view.exibirMensagem("\nCAMPANHA CONCLUIDA! Você se tornou o mais novo campeão!");
+            view.exibirMensagem("\nCAMPANHA CONCLUÍDA! Você se tornou o mais novo campeão!");
             log.registrarEvento("Resultado final: Campeão Invicto.");
         }
 
         log.salvarLogEmArquivo();
-        view.exibirMensagem("\nSimulação finalizada. Registos salvos com sucesso.");
+        view.exibirMensagem("\nSimulação finalizada. Registros salvos com sucesso.");
     }
 }

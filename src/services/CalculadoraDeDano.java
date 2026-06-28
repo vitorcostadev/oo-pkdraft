@@ -7,34 +7,35 @@ import domain.models.pokemon.Movimento;
 import domain.models.battle.Pokemon;
 
 /**
- * Isola as formulas oficiais de calculo de efetividade e dano.
+ * Classe responsável apenas por calcular o dano aplicado aos Pokémons.
  */
-public class CalculadoraDeDano {
+public abstract class CalculadoraDeDano {
 
     /**
-     * Computa a dedução de pontos de vida a aplicar no alvo.
+     * Calcula a dedução do HP a aplicar no alvo.
      * @param atacante Pokemon originador do ataque.
      * @param defensor Pokemon alvo da ofensiva.
      * @param mov Movimento utilizado.
      * @return Numero inteiro absoluto de pontos de dano a aplicar.
      */
-    public int calcular(Pokemon atacante, Pokemon defensor, Movimento mov) {
+    public static int calcular(Pokemon atacante, Pokemon defensor, Movimento mov) {
         if (mov.categoria() == CategoriaMovimento.STATUS) {
             return 0;
         }
 
-        int nivel = 50;
-        int poder = mov.poder();
+        int nivel = 100, poder = mov.poder(), atributoAtacante = 0 ,atributoDefensor = 0;
 
-        int atributoAtacante;
-        int atributoDefensor;
+        switch (mov.categoria()){
+            case FISICO -> {
+                atributoAtacante = atacante.getEstatisticas().getValor(Atributo.ATAQUE);
+                atributoDefensor = defensor.getEstatisticas().getValor(Atributo.DEFESA);
+            }
 
-        if (mov.categoria() == CategoriaMovimento.FISICO) {
-            atributoAtacante = atacante.getEstatisticas().getValor(Atributo.ATAQUE);
-            atributoDefensor = defensor.getEstatisticas().getValor(Atributo.DEFESA);
-        } else {
-            atributoAtacante = atacante.getEstatisticas().getValor(Atributo.ATAQUE_ESPECIAL);
-            atributoDefensor = defensor.getEstatisticas().getValor(Atributo.DEFESA_ESPECIAL);
+            case ESPECIAL -> {
+                atributoAtacante = atacante.getEstatisticas().getValor(Atributo.ATAQUE_ESPECIAL);
+                atributoDefensor = defensor.getEstatisticas().getValor(Atributo.DEFESA_ESPECIAL);
+            }
+
         }
 
         double stab = 1.0;

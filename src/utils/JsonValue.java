@@ -13,17 +13,17 @@ public sealed interface JsonValue {
 
     default String asString() {
         if (this instanceof JString(String s)) return s;
-        throw new IllegalStateException("Violação de Tipo: Esperado JString, obtido " + this.getClass().getSimpleName());
+        throw new IllegalStateException("Esperado JString, obtido " + this.getClass().getSimpleName());
     }
 
     default int asInt() {
         if (this instanceof JNumber(int n)) return n;
-        throw new IllegalStateException("Violação de Tipo: Esperado JNumber, obtido " + this.getClass().getSimpleName());
+        throw new IllegalStateException("Esperado JNumber, obtido " + this.getClass().getSimpleName());
     }
 
     default Map<String, JsonValue> asObject() {
         if (this instanceof JObject(var map)) return map;
-        throw new IllegalStateException("Violação de Tipo: Esperado JObject, obtido " + this.getClass().getSimpleName());
+        throw new IllegalStateException("Esperado JObject, obtido " + this.getClass().getSimpleName());
     }
 
     default int size() {
@@ -32,7 +32,7 @@ public sealed interface JsonValue {
             case JArray(var list)   -> list.size();
             case JString(var s)     -> s.length();
             case JNumber _, JNull _ -> throw new UnsupportedOperationException(
-                    "Nós escalares (" + this.getClass().getSimpleName() + ") não possuem cardinalidade."
+                    "Nodes escalares (" + this.getClass().getSimpleName() + ") não possuem cardinalidade."
             );
         };
     }

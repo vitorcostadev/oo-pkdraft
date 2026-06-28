@@ -4,28 +4,25 @@ import java.util.Scanner;
 import domain.models.battle.Batalha;
 import domain.models.battle.Pokemon;
 
-/**
- * Controla as interações de exibição e leitura de dados no terminal de comandos.
- */
-public class CLIView {
+public class CLIView implements InterfaceJogo {
     private final Scanner leitor;
 
     public CLIView() {
         this.leitor = new Scanner(System.in);
     }
 
+    @Override
     public void exibirMensagem(String mensagem) {
         System.out.println(mensagem);
     }
 
-    /**
-     * Bloqueia o andamento do software ate que o usuario pressione a tecla Enter para mudar de oponente.
-     */
+    @Override
     public void aguardarProximoDesafiante() {
         System.out.println("\n[Confronto encerrado. Pressione ENTER para avancar para o proximo oponente da Liga]");
         this.leitor.nextLine();
     }
 
+    @Override
     public void exibirStatusBatalha(Batalha batalha) {
         Pokemon p1 = batalha.getJogador().getPokemonAtivo();
         Pokemon p2 = batalha.getOponente().getPokemonAtivo();
@@ -40,8 +37,9 @@ public class CLIView {
         System.out.println("-------------------------");
     }
 
+    @Override
     public int lerInputInteiro(int min, int max) {
-        int escolha = -1;
+        int escolha;
         while (true) {
             System.out.print("Escolha uma opcao (" + min + " a " + max + "): ");
             String entrada = this.leitor.nextLine();

@@ -5,8 +5,9 @@ import domain.models.pokemon.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class Pokemon {
+public final class Pokemon {
     private final String nome;
     private final int nivel;
     private final Natureza natureza;
@@ -122,5 +123,26 @@ public class Pokemon {
 
     public Natureza getNatureza() {
         return natureza;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        Pokemon pokemon = (Pokemon) object;
+        return Objects.equals(getNome(), pokemon.getNome()) && getTipo1() == pokemon.getTipo1() && getTipo2() == pokemon.getTipo2();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getNome(), getTipo1(), getTipo2());
+    }
+
+    public int sumBst(){
+        return (statsCombate.getValor(Atributo.ATAQUE) +
+                statsCombate.getValor(Atributo.DEFESA) +
+                statsCombate.getValor(Atributo.ATAQUE_ESPECIAL) +
+                statsCombate.getValor(Atributo.DEFESA_ESPECIAL) +
+                statsCombate.getValor(Atributo.VELOCIDADE) +
+                statsCombate.getHp());
     }
 }

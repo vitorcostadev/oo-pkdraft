@@ -5,7 +5,7 @@ import controller.LogService;
 import domain.commands.ComandoTurno;
 import domain.models.battle.Batalha;
 /**
- * Aplica a ordem de prioridades e resolve as ações preparadas para o turno corrente.
+ * Aplica a ordem de prioridades e resolve as ações preparadas para o turno atual.
  */
 public class TurnoState implements BatalhaState {
     private final LogService log;
@@ -34,6 +34,13 @@ public class TurnoState implements BatalhaState {
         resolverAcoes(batalha, acaoJogador, acaoOponente);
     }
 
+    /**
+     * Responsável por ditar as prioridades dos Pokémons ativos na Batalha atual, para depois
+     * avançar para execução da ação no turno (atacar ou trocar).
+     * @param batalha A batalha atual que está a ocorrer.
+     * @param c1 A ação a ser tomada pelo primeiro treinador
+     * @param c2 A ação a ser tomada pelo segundo treinador
+     */
     private void resolverAcoes(Batalha batalha, ComandoTurno c1, ComandoTurno c2) {
         ComandoTurno primeiro = c1;
         ComandoTurno segundo = c2;
@@ -48,6 +55,11 @@ public class TurnoState implements BatalhaState {
             }
         }
 
+        /*
+        Após decidir as prioridades no turno, ele chama o método
+        executar() do primeiro e segundo, sempre garantido
+        que o mais prioritário / rápido execute a sua ação primeiro.
+         */
         primeiro.executar(batalha, this.log);
         segundo.executar(batalha, this.log);
     }

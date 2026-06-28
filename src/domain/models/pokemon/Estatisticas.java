@@ -55,4 +55,5 @@ public class Estatisticas {
                 ", SPE=" + velocidade +
                 '}';
     }
+
 }

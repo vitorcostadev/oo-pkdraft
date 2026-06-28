@@ -1,16 +1,18 @@
 package utils;
 
+import domain.exceptions.BadJsonFormatException;
+
 import java.util.*;
 
 /**
- * Analisador lexico e sintatico responsavel por converter cadeias brutas em arvores de JsonValue.
+ * Parser feito para facilitar as extrações de dados dos JSON utilizando a ‘interface’ JsonValue.
  */
 public abstract class Parser {
 
     public static int extrairInteiro(String bloco, String chave) {
         return extrairTexto(bloco, chave)
                 .map(Integer::parseInt)
-                .orElseThrow(() -> new RuntimeException("Chave numerica ausente: " + chave));
+                .orElseThrow(() -> new BadJsonFormatException("Chave numérica ausente: " + chave));
     }
 
     public static Optional<String> extrairTexto(String bloco, String chave) {
@@ -109,11 +111,14 @@ public abstract class Parser {
 
     public static JsonValue.JObject parsePokemonToAst(String rawPoke) {
         Map<String, JsonValue> map = new LinkedHashMap<>();
-        map.put("nome", new JsonValue.JString(extrairTexto(rawPoke, "nome").orElse("")));
-        map.put("t1", new JsonValue.JString(extrairTexto(rawPoke, "t1").orElse("NORMAL")));
+        map.put("nome", new JsonValue.JString(extrairTexto(rawPoke, "nome")
+                .orElse("")));
+        map.put("t1", new JsonValue.JString(extrairTexto(rawPoke, "t1")
+                .orElse("NORMAL")));
 
         Optional<String> t2Opt = extrairTexto(rawPoke, "t2");
-        map.put("t2", t2Opt.<JsonValue>map(JsonValue.JString::new).orElseGet(JsonValue.JNull::new));
+        map.put("t2", t2Opt.<JsonValue>map(JsonValue.JString::new)
+                .orElseGet(JsonValue.JNull::new));
 
         for (String stat : List.of("hp", "atk", "def", "spa", "spd", "spe")) {
             map.put(stat, new JsonValue.JNumber(extrairInteiro(rawPoke, stat)));
@@ -140,13 +145,15 @@ public abstract class Parser {
         for (int i = 0; i < jsonTrainers.size(); i++) {
             String rawTrainer = jsonTrainers.get(i);
             Map<String, JsonValue> trainerFields = new LinkedHashMap<>();
-            trainerFields.put("nome", new JsonValue.JString(extrairTexto(rawTrainer, "nome").orElse("")));
+            trainerFields.put("nome", new JsonValue.JString(extrairTexto(rawTrainer, "nome")
+                    .orElse("")));
 
             Map<String, JsonValue> timeFields = new LinkedHashMap<>();
             extrairObjeto(rawTrainer, "time").ifPresent(rawTime -> {
                 for (int p = 1; p <= 6; p++) {
                     String slot = String.valueOf(p);
-                    extrairObjeto(rawTime, slot).ifPresent(rawPoke -> timeFields.put(slot, parsePokemonToAst(rawPoke)));
+                    extrairObjeto(rawTime, slot)
+                            .ifPresent(rawPoke -> timeFields.put(slot, parsePokemonToAst(rawPoke)));
                 }
             });
 

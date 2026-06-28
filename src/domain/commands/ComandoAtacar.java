@@ -15,12 +15,10 @@ import services.CalculadoraDeDano;
 public class ComandoAtacar implements ComandoTurno {
     private final Treinador atacante;
     private final Movimento movimento;
-    private final CalculadoraDeDano calculadora;
 
     public ComandoAtacar(Treinador atacante, Movimento movimento) {
         this.atacante = atacante;
         this.movimento = movimento;
-        this.calculadora = new CalculadoraDeDano();
     }
 
     @Override
@@ -53,7 +51,7 @@ public class ComandoAtacar implements ComandoTurno {
                 atacante.getNome() + "]: "
                 + pAtacante.getNome() + " usou  " + movimento.nome() + "!");
 
-        int dano = calculadora.calcular(pAtacante, pDefensor, movimento);
+        int dano = CalculadoraDeDano.calcular(pAtacante, pDefensor, movimento);
 
         if (dano == 0 && movimento.categoria() != CategoriaMovimento.STATUS) {
             log.registrarEvento("O ataque nao afetou " + pDefensor.getNome() + "!");

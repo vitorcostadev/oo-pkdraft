@@ -1,5 +1,7 @@
 package controller;
 
+import view.InterfaceJogo;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,22 +10,18 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import view.CLIView;
 
-/**
- * Centraliza o armazenamento de logs e aplica uma temporizacao automatica para suavizar a leitura no terminal.
- */
 public class LogService {
     private final List<String> eventos;
-    private final CLIView view;
+    private final InterfaceJogo view;
 
-    public LogService(CLIView view) {
+    public LogService(InterfaceJogo view) {
         this.eventos = new ArrayList<>();
         this.view = view;
     }
 
     /**
-     * Registra o evento na lista e realiza uma pausa automatica na execucao para permitir a leitura fluida.
+     * Registra o evento na lista e realiza uma pausa automática na execução para permitir a leitura fluida.
      * @param mensagem Texto do evento ocorrido.
      */
     public void registrarEvento(String mensagem) {
@@ -41,7 +39,8 @@ public class LogService {
     public void salvarLogEmArquivo() {
         File diretorio = new File("logs");
         if (!diretorio.exists()) {
-            diretorio.mkdirs();
+            if(diretorio.mkdirs())
+                System.out.println("O diretório '" + diretorio.getName() + "' foi criado.");
         }
         String dataHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         File arquivo = new File(diretorio, "campanha_" + dataHora + ".pklog");
@@ -50,8 +49,8 @@ public class LogService {
                 escritor.write(evento);
                 escritor.newLine();
             }
-        } catch (IOException falha) {
-            System.err.println("Falha critica ao guardar logs: " + falha.getMessage());
+        } catch (IOException e) {
+            System.err.println("Falha critica ao guardar logs: " + e.getMessage());
         }
     }
 }

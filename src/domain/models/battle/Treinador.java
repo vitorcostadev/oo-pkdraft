@@ -86,4 +86,6 @@ public class Treinador {
     public EstrategiaDecisao getEstrategia() {
         return estrategia;
     }
+
+
 }
