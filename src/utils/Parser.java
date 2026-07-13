@@ -111,7 +111,7 @@ public abstract class Parser {
 
     public static JsonValue.JObject parsePokemonToAst(String rawPoke) {
         Map<String, JsonValue> map = new LinkedHashMap<>();
-        map.put("nome", new JsonValue.JString(extrairTexto(rawPoke, "nome")
+        map.put("name", new JsonValue.JString(extrairTexto(rawPoke, "name")
                 .orElse("")));
         map.put("t1", new JsonValue.JString(extrairTexto(rawPoke, "t1")
                 .orElse("NORMAL")));
@@ -145,7 +145,7 @@ public abstract class Parser {
         for (int i = 0; i < jsonTrainers.size(); i++) {
             String rawTrainer = jsonTrainers.get(i);
             Map<String, JsonValue> trainerFields = new LinkedHashMap<>();
-            trainerFields.put("nome", new JsonValue.JString(extrairTexto(rawTrainer, "nome")
+            trainerFields.put("name", new JsonValue.JString(extrairTexto(rawTrainer, "name")
                     .orElse("")));
 
             Map<String, JsonValue> timeFields = new LinkedHashMap<>();

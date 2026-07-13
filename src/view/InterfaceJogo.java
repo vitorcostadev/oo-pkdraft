@@ -1,6 +1,6 @@
 package view;
 
-import domain.models.battle.Batalha;
+import domain.models.battle.Battle;
 
 /**
  * Contrato formado exclusivamente para os view (facilitar a implementação de outros view's)
@@ -9,6 +9,6 @@ import domain.models.battle.Batalha;
 public interface InterfaceJogo {
     void exibirMensagem(String mensagem);
     void aguardarProximoDesafiante();
-    void exibirStatusBatalha(Batalha batalha);
+    void exibirStatusBatalha(Battle battle);
     int lerInputInteiro(int min, int max);
 }

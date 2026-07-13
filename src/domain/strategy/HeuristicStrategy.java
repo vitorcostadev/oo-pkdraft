@@ -1,59 +1,59 @@
 package domain.strategy;
 
-import domain.commands.ComandoAtacar;
-import domain.commands.ComandoTrocar;
-import domain.commands.ComandoTurno;
+import domain.commands.AttackCommand;
+import domain.commands.TradeCommand;
+import domain.commands.TurnCommand;
 import domain.models.battle.Pokemon;
-import domain.models.battle.Treinador;
-import domain.models.pokemon.Movimento;
-import services.CalculadoraDeDano;
+import domain.models.battle.Player;
+import domain.models.pokemon.Move;
+import services.DamageCalculator;
 
-public class HeuristicStrategy implements EstrategiaDecisao {
-    private boolean ultimoTurnoFoiTroca = false;
+public class HeuristicStrategy implements DecisionStrategy {
+    private boolean lastTurnWasTrade;
 
     /**
-     * Decide a ação que o Pokémon aliado vai exercer (se vai trocar, ou atacar).
-      * @param aliado Representa o objeto treinador do utilizador.
-     * @param inimigo Representa o objeto treinador inimigo.
-     * @return A chamada polimórfica da ‘interface’ ComandoTurno, que ditará a ação a ser tomada.
+     * Decide a ação que o Pokémon player vai exercer (se vai trocar, ou atacar).
+      * @param player Representa o objeto treinador do utilizador.
+     * @param opponent Representa o objeto treinador opponent.
+     * @return A chamada polimórfica da ‘interface’ TurnCommand, que ditará a ação a ser tomada.
      */
     @Override
-    public ComandoTurno escolherAcao(Treinador aliado, Treinador inimigo) {
-        Pokemon ativo = aliado.getPokemonAtivo();
-        Pokemon alvo = inimigo.getPokemonAtivo();
+    public TurnCommand chooseAction(Player player, Player opponent) {
+        Pokemon active = player.getActivePokemon();
+        Pokemon alvo = opponent.getActivePokemon();
 
-        if (deveTrocar(aliado, alvo) && !this.ultimoTurnoFoiTroca) {
-            Pokemon substituto = escolherSubstituto(aliado, alvo);
-            if (substituto != null && substituto != ativo) {
-                this.ultimoTurnoFoiTroca = true;
-                return new ComandoTrocar(aliado, substituto);
+        if (deveTrocar(player, alvo) && !this.lastTurnWasTrade) {
+            Pokemon substituto = chooseSubstitute(player, alvo);
+            if (substituto != null && substituto != active) {
+                this.lastTurnWasTrade = true;
+                return new TradeCommand(player, substituto);
             }
         }
 
-        this.ultimoTurnoFoiTroca = false;
-        Movimento melhorMovimento = obterMelhorMovimento(ativo, alvo);
-        return new ComandoAtacar(aliado, melhorMovimento);
+        this.lastTurnWasTrade = false;
+        Move melhorMove = getBestMove(active, alvo);
+        return new AttackCommand(player, melhorMove);
     }
 
     /**
-     * Faz uma busca em todos os Pokémons disponíveis do treinador aliado, e retornará
-     * o melhor Pokémon para substituir o atual ativo.
-     * @param aliado Representa o objeto treinador do utilizador.
-     * @param inimigo Representa o Pokémon do inimigo.
-     * @return O melhor Pokémon para assumir o lugar do antigo ativo.
+     * Faz uma busca em todos os Pokémons disponíveis do treinador player, e retornará
+     * o melhor Pokémon para substituir o atual active.
+     * @param player Representa o objeto treinador do utilizador.
+     * @param opponent Representa o Pokémon do opponent.
+     * @return O melhor Pokémon para assumir o lugar do antigo active.
      */
     @Override
-    public Pokemon escolherSubstituto(Treinador aliado, Pokemon inimigo) {
+    public Pokemon chooseSubstitute(Player player, Pokemon opponent) {
         Pokemon melhor = null;
         double melhorScore = -100.0;
 
-        for (Pokemon candidato : aliado.getEquipe()) {
-            if (candidato.isDesmaiado() || candidato == aliado.getPokemonAtivo()) {
+        for (Pokemon candidato : player.getTeam()) {
+            if (candidato.isFainted() || candidato == player.getActivePokemon()) {
                 continue;
             }
 
-            double scoreDefensivo = 4.0 - calcularRiscoTipagem(inimigo, candidato);
-            double scoreOfensivo = calcularRiscoTipagem(candidato, inimigo);
+            double scoreDefensivo = 4.0 - calcRiskType(opponent, candidato);
+            double scoreOfensivo = calcRiskType(candidato, opponent);
             double scoreTotal = scoreDefensivo + scoreOfensivo;
 
             if (scoreTotal > melhorScore) {
@@ -65,33 +65,33 @@ public class HeuristicStrategy implements EstrategiaDecisao {
         return melhor;
     }
 
-    private boolean deveTrocar(Treinador aliado, Pokemon inimigo) {
-        double efetividadeInimiga = calcularRiscoTipagem(
-                inimigo, aliado.getPokemonAtivo());
-        double nossaEfetividade = calcularRiscoTipagem(aliado.getPokemonAtivo(), inimigo);
+    private boolean deveTrocar(Player player, Pokemon opponent) {
+        double efetividadeInimiga = calcRiskType(
+                opponent, player.getActivePokemon());
+        double nossaEfetividade = calcRiskType(player.getActivePokemon(), opponent);
 
         return nossaEfetividade == 0D || (efetividadeInimiga >= 2D && nossaEfetividade <= 0.5);
     }
 
-    private double calcularRiscoTipagem(Pokemon atacante, Pokemon defensor) {
-        double risco1 = atacante.getTipo1()
-                .calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
-        double risco2 = 0.0;
+    private double calcRiskType(Pokemon player, Pokemon opponent) {
+        double risco1 = player.getFirst()
+                .calcEffectiveness(opponent.getFirst(), opponent.getSecond());
+        double risco2 = 0D;
 
-        if (atacante.getTipo2() != null) {
-            risco2 = atacante.getTipo2()
-                    .calcularEfetividade(defensor.getTipo1(), defensor.getTipo2());
+        if (player.getSecond() != null) {
+            risco2 = player.getSecond()
+                    .calcEffectiveness(opponent.getFirst(), opponent.getSecond());
         }
 
         return Math.max(risco1, risco2);
     }
 
-    private Movimento obterMelhorMovimento(Pokemon atacante, Pokemon defensor) {
-        Movimento melhor = atacante.getMovimentos().getFirst();
+    private Move getBestMove(Pokemon player, Pokemon opponent) {
+        Move melhor = player.getMovimentos().getFirst();
         int maiorDano = -1;
 
-        for (Movimento mov : atacante.getMovimentos()) {
-            int dano = CalculadoraDeDano.calcular(atacante, defensor, mov);
+        for (Move mov : player.getMovimentos()) {
+            int dano = DamageCalculator.calc(player, opponent, mov);
             if (dano > maiorDano) {
                 maiorDano = dano;
                 melhor = mov;

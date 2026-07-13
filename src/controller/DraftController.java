@@ -1,11 +1,10 @@
 package controller;
 
-import domain.builder.PokemonBuilder;
-import domain.facade.PokemonDadosFacade;
+import domain.facade.DataPokemonFacade;
 import domain.models.battle.Pokemon;
-import domain.models.battle.Treinador;
-import domain.models.pokemon.Atributo;
-import domain.models.pokemon.Natureza;
+import domain.models.battle.Player;
+import domain.models.pokemon.Attribute;
+import domain.models.pokemon.Nature;
 import domain.strategy.HeuristicStrategy;
 import view.InterfaceJogo;
 
@@ -15,45 +14,45 @@ import java.util.Random;
 
 public class DraftController {
 
-    public Treinador iniciarDraft(PokemonDadosFacade facade, InterfaceJogo view) {
+    public Player iniciarDraft(DataPokemonFacade facade, InterfaceJogo view) {
         view.exibirMensagem("=== POKEMON DRAFT ===");
         view.exibirMensagem("Prepare-se para escolher uma equipe de 6 Pokémons.");
 
-        Treinador jogador = new Treinador("Usuario", new HeuristicStrategy());
+        Player jogador = new Player("Usuario", new HeuristicStrategy());
         Random aleatorizador = new Random();
 
-        while (jogador.getEquipe().size() < 6) {
-            List<PokemonBuilder> opcoesBuilders = facade.obterTresOpcoesAleatorias();
+        while (jogador.getTeam().size() < 6) {
+            List<Pokemon.Builder> opcoesBuilders = facade.getOptions();
             List<Pokemon> opcoes = new ArrayList<>();
 
-            for (PokemonBuilder b : opcoesBuilders) {
-                Natureza nat = Natureza.values()[aleatorizador.nextInt(Natureza.values().length)];
-                b.setNatureza(nat);
+            for (Pokemon.Builder b : opcoesBuilders) {
+                Nature nat = Nature.values()[aleatorizador.nextInt(Nature.values().length)];
+                b.setNature(nat);
                 opcoes.add(b.build());
             }
 
-            view.exibirMensagem("\nSelecione o Pokémon n°" + (jogador.getEquipe().size() + 1) + ":");
+            view.exibirMensagem("\nSelecione o Pokémon n°" + (jogador.getTeam().size() + 1) + ":");
 
             for (int i = 0; i < opcoes.size(); i++) {
                 Pokemon p = opcoes.get(i);
-                String linha = String.format("%d - %s | Natureza: %s | HP: %d | ATK: %d | DEF: %d | SPA: %d | SPD: %d | SPE: %d",
+                String linha = String.format("%d - %s | Nature: %s | HP: %d | ATK: %d | DEF: %d | SPA: %d | SPD: %d | SPE: %d",
                         (i + 1),
-                        p.getNome(),
-                        p.getNatureza().name(),
-                        p.getEstatisticas().getHp(),
-                        p.getEstatisticas().getValor(Atributo.ATAQUE),
-                        p.getEstatisticas().getValor(Atributo.DEFESA),
-                        p.getEstatisticas().getValor(Atributo.ATAQUE_ESPECIAL),
-                        p.getEstatisticas().getValor(Atributo.DEFESA_ESPECIAL),
-                        p.getEstatisticas().getValor(Atributo.VELOCIDADE));
+                        p.getName(),
+                        p.getNature().name(),
+                        p.getStats().getHp(),
+                        p.getStats().getValor(Attribute.ATK),
+                        p.getStats().getValor(Attribute.DEF),
+                        p.getStats().getValor(Attribute.SPA),
+                        p.getStats().getValor(Attribute.SPD),
+                        p.getStats().getValor(Attribute.SPE));
                 view.exibirMensagem(linha);
             }
 
             int indiceEscolhido = view.lerInputInteiro(1, opcoes.size());
             Pokemon escolhido = opcoes.get(indiceEscolhido - 1);
-            jogador.adicionarPokemon(escolhido);
+            jogador.addPokemon(escolhido);
 
-            view.exibirMensagem("POKÉMON ESCOLHIDO: " + escolhido.getNome() + " | Natureza: " + escolhido.getNatureza().name() + " juntou-se a equipe.");
+            view.exibirMensagem("POKÉMON ESCOLHIDO: " + escolhido.getName() + " | Nature: " + escolhido.getNature().name() + " juntou-se a equipe.");
         }
 
         view.exibirMensagem("\nA sua equipe de Pokémons esta fechada.");

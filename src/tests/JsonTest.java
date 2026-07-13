@@ -1,6 +1,6 @@
 package tests;
 
-import domain.facade.JsonLocalFacade;
+import domain.facade.JsonDataFacade;
 import utils.JsonValue;
 import utils.Parser;
 
@@ -11,7 +11,7 @@ import java.util.*;
 
 public class JsonTest {
     static void main() throws IOException {
-        JsonLocalFacade json = new JsonLocalFacade();
+        JsonDataFacade json = new JsonDataFacade();
         List<String> strings = Parser.separarObjetos(
                 new String(Files.readAllBytes(Paths.get("league_data.json"))))
                         .orElseThrow(RuntimeException::new);

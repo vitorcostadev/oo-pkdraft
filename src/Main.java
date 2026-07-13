@@ -1,32 +1,18 @@
-import controller.CampanhaController;
 import controller.DraftController;
-import domain.facade.JsonLocalFacade;
-import domain.facade.PokemonDadosFacade;
-import domain.models.battle.Treinador;
+import controller.LeagueController;
+import domain.facade.DataPokemonFacade;
+import domain.facade.JsonDataFacade;
+import domain.models.battle.Player;
 import view.CLIView;
 import view.InterfaceJogo;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
+void main() {
+    InterfaceJogo view = new CLIView();
+    DataPokemonFacade facade;
+    facade = new JsonDataFacade();
 
-public class Main{
-
-    public static void main(String... args) {
-        InterfaceJogo view = new CLIView();
-        PokemonDadosFacade facade;
-        try {
-            facade = new JsonLocalFacade();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("Não foi possível encontrar o arquivo 'pokemons_base.json'.");
-        }catch (IOException e){
-            throw new RuntimeException(e);
-        }
-
-        DraftController draft = new DraftController();
-        Treinador jogador = draft.iniciarDraft(facade, view);
-        new CampanhaController().iniciarCampanha(jogador, facade, view);
-    }
-
-
+    DraftController draft = new DraftController();
+    Player jogador = draft.iniciarDraft(facade, view);
+    new LeagueController().iniciarCampanha(jogador, facade, view);
 }

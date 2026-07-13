@@ -11,7 +11,7 @@ Este repositório contém o código-fonte do projeto **POKEMON DRAFT**, feito pa
 # Introdução
 O **pokemon draft** é um projeto bem simples. O foco foi mais centrado em entregar algo que atendesse aos requisitos de avaliação impostos pela professora da disciplina. Nele você pode:
 
-- Escolher pokémons para formar um time (*draft*)
+- Escolher Pokémons para formar um time (*draft*)
 - Batalhar contra adversários com o time que formou
 
 A interação é totalmente via CLI (*Command-Line Interface*) e os pokémons são sorteados aleatoriamente a cada momento do draft.
@@ -19,16 +19,16 @@ A interação é totalmente via CLI (*Command-Line Interface*) e os pokémons s�
 # Documentação
 O projeto foi construído em cima da arquitetura MVC (*Model-View-Controller*) e utilizou os seguintes padrões de projeto:
 
-- *Builder*: Responsável por construir os objetos `Pokemon` via `PokemonBuilder`.
+- *Builder*: Responsável por construir os objetos `Pokemon` via `Pokemon.Builder` (classe estática aninhada).
 - *Command*: Para controlar os momentos onde o `Pokemon` vai atacar (`ComandoAtacar`) ou trocar (`ComandoTrocar`).
 - *State*: Para fazer os controles de prioridade e resolver as ações para o turno atual.
-- *Strategy*: Utilizado para construir toda a lógica de comportamento em batalha, sem precisar acoplar na batalha diretamente.
-- *Facade*: Utilizado para construir uma interface que faça a leitura dos pokémons via JSON.
+- *Strategy*: Utilizado para construir toda a lógica de comportamento em battle, sem precisar acoplar na battle diretamente.
+- *Facade*: Utilizado para construir uma ‘interface’ que faça a leitura dos Pokémons.
 
 ### Controladores e Serviços
-- `DraftController`: Controla as rodadas de escolha. Ele sorteia 3 opções de Pokémons por vez com naturezas aleatórias até você completar seu time de 6.
-- `CampanhaController`: Organiza a sequência de lutas contra os treinadores da Liga de Kanto. Ele cura a vida do seu time entre uma vitória e outra, e encerra o jogo se todos os seus Pokémons desmaiarem.
-- `LogService`: Mostra as mensagens na tela com uma pequena pausa de 1.2 segundos para a leitura não ficar rápida demais, e salva tudo o que aconteceu em um arquivo `.pklog` dentro da pasta `logs`.
+- `DraftController`: Controla as rodadas de escolha. Ele sorteia 3 opções de Pokémons por vez com naturezas aleatórias até você completar o seu time de 6.
+- `CampanhaController`: Organiza a sequência de lutas contra os treinadores da Liga. Ele cura a vida do seu time entre uma vitória e outra, e encerra o jogo se todos os seus Pokémons desmaiarem.
+- `LogService`: Mostra as mensagens na tela com uma pequena pausa de 1,2 segundos para a leitura não ficar rápida demais, e salva tudo o que aconteceu num arquivo `.pklog` dentro da pasta `logs`.
 
 ### Mecânicas do Jogo
 Para deixar o simulador mais fiel aos jogos originais, foram implementados os seguintes sistemas:
@@ -41,25 +41,28 @@ Para deixar o simulador mais fiel aos jogos originais, foram implementados os se
 - **Ordem do Turno:** A velocidade dos Pokémons e o tipo de ação escolhida (atacar ou trocar) determinam quem joga primeiro a cada turno.
 
 ### Carregamento de Dados
-Os dados dos pokémons foram armazenados no arquivo `pokemons_base.json` e são tratados pela classe `JsonLocalFacade`. Se o arquivo sumir ou der erro na leitura, o sistema usa dados de segurança salvos direto no código para o jogo não fechar:
+Os dados dos Pokémons foram armazenados no arquivo `pokemons_base.json` e são tratados pela classe `JsonLocalFacade`. Se o arquivo sumir ou der erro na leitura, o sistema usa dados de segurança salvos direto no código para o jogo não fechar:
 
 ```java
-private void carregarDadosDoDisco() {
+public JsonDataFacade() {
+    this.baseRepository = new ArrayList<>();
+    loadDataFromDisk();
+}
+
+private void loadDataFromDisk(){
+    processJson(readArchive("pokemons_base.json"));
+}
+
+private String readArchive(String pathname) {
     try {
-        String conteudo = new String(Files.readAllBytes(Paths.get("pokemons_base.json")));
-        processarJson(conteudo);
-    } catch (Exception e) {
-        carregarDadosDeContingencia();
+        return new String(Files.readAllBytes(Paths.get(pathname)));
+    } catch (IOException e) {
+        System.err.println("Não foi possível localizar o arquivo: " + pathname + " carregando dados de contingency.");
+        loadDefaultData();
+        return "";
     }
 }
 ```
-### Diagrama da Arquitetura
-
-<div align="center">
-  
-  <img src="logs/diagram.png" width="85%" alt="Diagrama UML de Classes do Pokémon Draft" />
-  
-</div>
 
 ## Como executar
 Para rodar esse projeto, é bem simples, você só precisa ter o Java instalado (21+):

@@ -1,7 +1,7 @@
 package view;
 
 import java.util.Scanner;
-import domain.models.battle.Batalha;
+import domain.models.battle.Battle;
 import domain.models.battle.Pokemon;
 
 public class CLIView implements InterfaceJogo {
@@ -23,16 +23,16 @@ public class CLIView implements InterfaceJogo {
     }
 
     @Override
-    public void exibirStatusBatalha(Batalha batalha) {
-        Pokemon p1 = batalha.getJogador().getPokemonAtivo();
-        Pokemon p2 = batalha.getOponente().getPokemonAtivo();
+    public void exibirStatusBatalha(Battle battle) {
+        Pokemon p1 = battle.getPlayer().getActivePokemon();
+        Pokemon p2 = battle.getOpponent().getActivePokemon();
 
         System.out.println("\n--- STATUS DO COMBATE ---");
         if (p1 != null) {
-            System.out.println(batalha.getJogador().getNome() + " - " + p1.getNome() + " [HP: " + p1.getHpAtual() + "/" + p1.getEstatisticas().getHp() + "]");
+            System.out.println(battle.getPlayer().getName() + " - " + p1.getName() + " [HP: " + p1.getHpAtual() + "/" + p1.getStats().getHp() + "]");
         }
         if (p2 != null) {
-            System.out.println(batalha.getOponente().getNome() + " - " + p2.getNome() + " [HP: " + p2.getHpAtual() + "/" + p2.getEstatisticas().getHp() + "]");
+            System.out.println(battle.getOpponent().getName() + " - " + p2.getName() + " [HP: " + p2.getHpAtual() + "/" + p2.getStats().getHp() + "]");
         }
         System.out.println("-------------------------");
     }

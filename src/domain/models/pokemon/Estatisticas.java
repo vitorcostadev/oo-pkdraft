@@ -30,13 +30,13 @@ public class Estatisticas {
      * @param a Enum correspondente ao atributo desejado.
      * @return Valor numérico inteiro do atributo solicitado.
      */
-    public int getValor(Atributo a) {
+    public int getValor(Attribute a) {
         return switch (a) {
-            case ATAQUE -> ataque;
-            case DEFESA -> defesa;
-            case ATAQUE_ESPECIAL -> ataqueEspecial;
-            case DEFESA_ESPECIAL -> defesaEspecial;
-            case VELOCIDADE -> velocidade;
+            case ATK -> ataque;
+            case DEF -> defesa;
+            case SPA -> ataqueEspecial;
+            case SPD -> defesaEspecial;
+            case SPE -> velocidade;
         };
     }
 

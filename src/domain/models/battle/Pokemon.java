@@ -1,148 +1,236 @@
 package domain.models.battle;
 
-import domain.builder.PokemonBuilder;
 import domain.models.pokemon.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class Pokemon {
-    private final String nome;
-    private final int nivel;
-    private final Natureza natureza;
-    private final Tipo tipo1;
-    private final Tipo tipo2;
+    private final String name;
+    private final int level;
+    private final Nature nature;
+    private final Type first;
+    private final Type second;
     private final Estatisticas baseStats;
     private final Estatisticas ivs;
     private final Estatisticas evs;
-    private Estatisticas statsCombate;
-    private final List<Movimento> movimentos;
+    private Estatisticas stats;
+    private final List<Move> moves;
     private int hpAtual;
 
-    public Pokemon(PokemonBuilder builder) {
-        this.nome = builder.getNome();
-        this.nivel = builder.getNivel();
-        this.natureza = builder.getNatureza();
-        this.tipo1 = builder.getTipo1();
-        this.tipo2 = builder.getTipo2();
+    public Pokemon(Builder builder){
+        this.name = builder.getName();
+        this.nature = builder.getNature();
+        this.first = builder.getTypeOne();
+        this.second = builder.getTypeTwo();
         this.baseStats = builder.getBaseStats();
-        this.ivs = builder.getIvs();
-        this.evs = builder.getEvs();
-        this.movimentos = new ArrayList<>(builder.getMovimentos());
-        calcularStatsLevel();
-        this.hpAtual = this.statsCombate.getHp();
+        this.moves = builder.getMovimentos();
+
+        if(builder.getIvs() == null)
+            this.ivs = new Estatisticas(31, 31, 31, 31, 31, 31);
+        else{
+            this.ivs = builder.getIvs();
+        }
+        if(builder.getEvs() == null)
+            this.evs = new Estatisticas(0, 0, 0, 0, 0, 0);
+        else{
+            this.evs = builder.getEvs();
+        }
+
+        if(builder.getLevel() == 0) this.level = 100;
+        else this.level = builder.getLevel();
+
+        calculateStatsLevel();
+        this.hpAtual = this.stats.getHp();
     }
+    public static class Builder{
+        private String name;
+        private int level;
+        private Nature nature;
+        private Type typeOne;
+        private Type typeTwo;
+        private Estatisticas baseStats;
+        private Estatisticas ivs;
+        private Estatisticas evs;
+        private final List<Move> moves = new ArrayList<>();
 
-    private void calcularStatsLevel() {
-        int hp = calcularHpMaximo();
-        int ataque = calcularEstatistica(Atributo.ATAQUE);
-        int defesa = calcularEstatistica(Atributo.DEFESA);
-        int ataqueEspecial = calcularEstatistica(Atributo.ATAQUE_ESPECIAL);
-        int defesaEspecial = calcularEstatistica(Atributo.DEFESA_ESPECIAL);
-        int velocidade = calcularEstatistica(Atributo.VELOCIDADE);
+        public Builder setName(String name){
+            this.name = name;
+            return this;
+        }
 
-        this.statsCombate = new Estatisticas(hp, ataque, defesa, ataqueEspecial, defesaEspecial, velocidade);
-    }
+        public Builder setLevel(int level){
+            this.level = level;
+            return this;
+        }
 
-    private int calcularHpMaximo() {
-        int base = this.baseStats.getHp();
-        int iv = this.ivs.getHp();
-        int ev = this.evs.getHp();
-        return ((2 * base + iv + (ev / 4)) * this.nivel) / 100 + this.nivel + 10;
-    }
+        public Builder setIvs(Estatisticas ivs){
+            this.ivs = ivs;
+            return this;
+        }
 
-    private int calcularEstatistica(Atributo atributo) {
-        int base = this.baseStats.getValor(atributo);
-        int iv = this.ivs.getValor(atributo);
-        int ev = this.evs.getValor(atributo);
-        double multiplicador = this.natureza.obterMultiplicador(atributo);
+        public Builder setEvs(Estatisticas evs){
+            this.evs = evs;
+            return this;
+        }
 
-        int calculoBase = ((2 * base + iv + (ev / 4)) * this.nivel) / 100 + 5;
-        return (int) (calculoBase * multiplicador);
-    }
+        public Builder setNature(Nature nature){
+            this.nature = nature;
+            return this;
+        }
 
-    /**
-     * Aplica redução HP atual garantindo que o valor não seja negativo.
-     * @param dano Quantidade de dano calculada.
-     */
-    public void receberDano(int dano) {
-        this.hpAtual -= dano;
-        if (this.hpAtual < 0) {
-            this.hpAtual = 0;
+        public Builder setTypes(Type first, Type two){
+            if(first == null) throw new RuntimeException("The first type of Pokémon is null.");
+            this.typeOne = first;
+            this.typeTwo = two;
+            return this;
+        }
+
+        public Builder setBaseStats(Estatisticas base){
+            this.baseStats = base;
+            return this;
+        }
+
+        public Builder addMove(Move move){
+            if(this.moves.size() < 4 && !this.moves.contains(move))
+                this.moves.add(move);
+            return this;
+        }
+
+        public Pokemon build(){
+            return new Pokemon(this);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public Nature getNature() {
+            return nature;
+        }
+
+        public Type getTypeOne() {
+            return typeOne;
+        }
+
+        public Type getTypeTwo() {
+            return typeTwo;
+        }
+
+        public Estatisticas getBaseStats() {
+            return baseStats;
+        }
+
+        public Estatisticas getIvs() {
+            return ivs;
+        }
+
+        public Estatisticas getEvs() {
+            return evs;
+        }
+
+        public List<Move> getMovimentos() {
+            return moves;
         }
     }
 
-    /**
-     * Restaura o HP para a capacidade maxima.
-     */
-    public void curarTotalmente() {
-        this.hpAtual = this.statsCombate.getHp();
+
+    private void calculateStatsLevel() {
+        int hp = calculateMaxHP();
+        int ataque = calcStats(Attribute.ATK);
+        int defesa = calcStats(Attribute.DEF);
+        int ataqueEspecial = calcStats(Attribute.SPA);
+        int defesaEspecial = calcStats(Attribute.SPD);
+        int velocidade = calcStats(Attribute.SPE);
+
+        this.stats = new Estatisticas(hp, ataque, defesa, ataqueEspecial, defesaEspecial, velocidade);
     }
 
-    /**
-     * Verifica se o Pokemon possui um determinado tipo.
-     * @param t Tipo a ser verificado.
-     * @return True caso o Pokemon possua o tipo.
-     */
-    public boolean temTipo(Tipo t) {
-        return this.tipo1 == t || this.tipo2 == t;
+    private int calculateMaxHP() {
+        int base = this.baseStats.getHp();
+        int iv = this.ivs.getHp();
+        int ev = this.evs.getHp();
+        return ((2 * base + iv + (ev / 4)) * this.level) / 100 + this.level + 10;
     }
 
-    /**
-     * Valida se o Pokemon está desmaiado.
-     * @return True caso o hpAtual seja zero.
-     */
-    public boolean isDesmaiado() {
-        return this.hpAtual == 0;
+    private int calcStats(Attribute attribute) {
+        int base = this.baseStats.getValor(attribute);
+        int iv = this.ivs.getValor(attribute);
+        int ev = this.evs.getValor(attribute);
+        double multiplicador = this.nature.getMultiplier(attribute);
+
+        int calculoBase = ((2 * base + iv + (ev / 4)) * this.level) / 100 + 5;
+        return (int) (calculoBase * multiplicador);
     }
 
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
-    public Estatisticas getEstatisticas() {
-        return statsCombate;
+    public Nature getNature() {
+        return nature;
     }
 
-    public List<Movimento> getMovimentos() {
-        return movimentos;
+    public Type getFirst() {
+        return first;
+    }
+
+    public Type getSecond() {
+        return second;
+    }
+
+    public Estatisticas getStats() {
+        return stats;
+    }
+
+    public List<Move> getMovimentos() {
+        return moves;
     }
 
     public int getHpAtual() {
         return hpAtual;
     }
 
-    public Tipo getTipo1() {
-        return tipo1;
+    public boolean isFainted(){
+        return hpAtual == 0;
     }
 
-    public Tipo getTipo2() {
-        return tipo2;
+    public boolean hasType(Type type){
+        return this.first.equals(type) ||
+                this.second != null &&
+                        this.second.equals(type);
     }
 
-    public Natureza getNatureza() {
-        return natureza;
+    public void receiveDamage(int dmg){
+        this.hpAtual -= dmg;
+        if (this.hpAtual < 0) {
+            this.hpAtual = 0;
+        }
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (object == null || getClass() != object.getClass()) return false;
-        Pokemon pokemon = (Pokemon) object;
-        return Objects.equals(getNome(), pokemon.getNome()) && getTipo1() == pokemon.getTipo1() && getTipo2() == pokemon.getTipo2();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getNome(), getTipo1(), getTipo2());
+    public void healFully(){
+        this.hpAtual = this.stats.getHp();
     }
 
     public int sumBst(){
-        return (statsCombate.getValor(Atributo.ATAQUE) +
-                statsCombate.getValor(Atributo.DEFESA) +
-                statsCombate.getValor(Atributo.ATAQUE_ESPECIAL) +
-                statsCombate.getValor(Atributo.DEFESA_ESPECIAL) +
-                statsCombate.getValor(Atributo.VELOCIDADE) +
-                statsCombate.getHp());
+        return (getHpAtual() +
+                stats.getValor(Attribute.ATK) +
+                stats.getValor(Attribute.DEF) +
+                stats.getValor(Attribute.SPA) +
+                stats.getValor(Attribute.SPD) +
+                stats.getValor(Attribute.SPE)
+        );
+    }
+
+    public static Builder getBuilder() {
+        return new Builder();
+    }
+
+    public int getLevel() {
+        return level;
     }
 }
