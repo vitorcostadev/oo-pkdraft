@@ -9,8 +9,7 @@ import view.InterfaceJogo;
 
 void main() {
     InterfaceJogo view = new CLIView();
-    DataPokemonFacade facade;
-    facade = new JsonDataFacade();
+    DataPokemonFacade facade = new JsonDataFacade();
 
     DraftController draft = new DraftController();
     Player jogador = draft.iniciarDraft(facade, view);
